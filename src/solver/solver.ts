@@ -1,7 +1,16 @@
-// panel-sim circuit solver — M0/M1: single-loop DC through passable edges.
-// Pure module, no DOM, deterministic. Full nodal analysis arrives in M2.
+// panel-sim circuit solver — M0/M1 loop detection + M2 nodal (MNA) readings.
+// Pure module, no DOM, deterministic.
 
 import type { DeviceType } from "../state/store";
+import {
+  emfOf,
+  isResistive,
+  isShort,
+  isSource,
+  resistanceOf,
+  solveNodal,
+  type Reading,
+} from "./mna";
 
 export interface SolDevice {
   id: string;
@@ -21,12 +30,14 @@ export interface SimResult {
   lit: Set<string>;
   /** wire ids carrying current (closed loop) */
   live: Set<string>;
-  /** loop current in amps (0 when open) */
+  /** source current in amps (0 when open / stopped / shorted) */
   current: number;
   /** human-readable problems; empty = healthy */
   faults: string[];
   /** true when source's two terminals are joined through closed devices */
   closed: boolean;
+  /** per-device MNA readings (sources + resistive branches) */
+  readings: Record<string, Reading>;
 }
 
 const termKey = (dev: string, term: 0 | 1) => `${dev}:${term}`;
@@ -51,6 +62,45 @@ class Union {
   }
 }
 
+/** types the solver models today (everything else reports a milestone fault) */
+const MODELLED: DeviceType[] = [
+  "source",
+  "ac-source",
+  "battery",
+  "generator",
+  "ground",
+  "button",
+  "button-nc",
+  "estop",
+  "selector",
+  "switch-2way",
+  "keyswitch",
+  "lamp",
+  "lamp-amber",
+  "buzzer",
+  "beacon",
+  "aux-nc",
+  "fuse",
+  "breaker-1p",
+  "breaker-3p",
+  "mccb",
+  "overload",
+  "surge",
+  "rccb",
+  "resistor",
+  "capacitor",
+  "inductor",
+  "potentiometer",
+  "thermistor",
+  "voltmeter",
+  "ammeter",
+  "multimeter",
+  "clamp",
+  "terminal-block",
+  "junction-box",
+  "connector",
+];
+
 export function simulate(
   devices: SolDevice[],
   wires: SolWire[],
@@ -60,6 +110,8 @@ export function simulate(
   const faults: string[] = [];
   const lit = new Set<string>();
   const live = new Set<string>();
+  let readings: Record<string, Reading> = {};
+  let current = 0;
 
   // dangling terminals
   const touched = new Set<string>();
@@ -72,72 +124,69 @@ export function simulate(
       if (!touched.has(termKey(d.id, t)))
         faults.push(`${d.name}: terminal ${t === 0 ? "1" : "2"} not connected`);
 
-  const sources = devices.filter((d) => d.type === "source");
+  const sources = devices.filter(isSource);
   if (devices.length > 0 && sources.length === 0)
     faults.push("No power source in the circuit");
-  if (sources.length > 1)
-    faults.push("Multiple sources are not supported yet (M2)");
 
-  // editor-ready types whose simulation model lands in M2/M3/M4 —
-  // only complain about unmodelled parts that are actually wired in
-  const SIM_TYPES: DeviceType[] = [
-    "source",
-    "button",
-    "button-nc",
-    "lamp",
-    "lamp-amber",
-    "resistor",
-  ];
+  // unmodelled types: only complain about parts that are actually wired in
   const wired = new Set<string>();
   for (const w of wires) {
     wired.add(w.a.dev);
     wired.add(w.b.dev);
   }
   for (const d of devices)
-    if (!SIM_TYPES.includes(d.type) && wired.has(d.id))
+    if (!MODELLED.includes(d.type) && wired.has(d.id))
       faults.push(`${d.name}: simulation model arrives in a later milestone`);
 
+  // connectivity view: wires + everything that bridges its terminals right now
   const uf = new Union();
   for (const d of devices) {
     uf.find(termKey(d.id, 0));
     uf.find(termKey(d.id, 1));
   }
   for (const w of wires) uf.union(termKey(w.a.dev, w.a.term), termKey(w.b.dev, w.b.term));
-
-  // A source does NOT bridge its own terminals: the loop must return
-  // through the rest of the circuit, otherwise every source reads "closed".
-  // Loads that conduct: lamps and resistors (both carry a resistance).
-  // NO buttons close while held; NC buttons conduct unless held.
-  const passable = (d: SolDevice) =>
-    d.type === "lamp" ||
-    d.type === "lamp-amber" ||
-    d.type === "resistor" ||
-    (d.type === "button" && running && pressed.includes(d.id)) ||
-    (d.type === "button-nc" && running && !pressed.includes(d.id));
+  const bridges = (d: SolDevice) =>
+    isShort(d, pressed, running) || isResistive(d);
   for (const d of devices)
-    if (passable(d)) uf.union(termKey(d.id, 0), termKey(d.id, 1));
+    if (bridges(d)) uf.union(termKey(d.id, 0), termKey(d.id, 1));
 
+  // loop detection + short-circuit guard (a source never bridges itself)
   let closed = false;
-  let current = 0;
+  let shorted = false;
   const source = sources[0];
   if (source && running) {
     closed = uf.same(termKey(source.id, 0), termKey(source.id, 1));
     if (closed) {
+      const root = uf.find(termKey(source.id, 0));
       const loads = devices.filter(
-        (d) =>
-          (d.type === "lamp" ||
-            d.type === "lamp-amber" ||
-            d.type === "resistor") &&
-          uf.same(termKey(d.id, 0), termKey(source.id, 0)),
+        (d) => isResistive(d) && uf.find(termKey(d.id, 0)) === root,
       );
-      const totalR = loads.reduce((sum, l) => sum + (l.params.r || 100), 0);
-      if (loads.length === 0 || totalR <= 0) {
-        faults.push("Short circuit — no load in the loop");
+      const totalR = loads.reduce((s, d) => s + (resistanceOf(d) ?? 0), 0);
+      if (loads.length === 0 || totalR < 0.01) {
+        faults.push(
+          loads.length === 0
+            ? "Short circuit — no load in the loop"
+            : "Short circuit — path resistance too low",
+        );
         closed = false;
-      } else {
-        current = (source.params.v || 24) / totalR;
-        for (const l of loads)
-          if (l.type === "lamp" || l.type === "lamp-amber") lit.add(l.id);
+        shorted = true;
+      }
+    }
+  }
+
+  // nodal analysis: real voltages/currents whenever the model is solvable
+  if (running && source && !shorted) {
+    const nodal = solveNodal(devices, wires, pressed, running);
+    if (nodal.ok) {
+      readings = nodal.readings;
+      const sr = readings[source.id];
+      if (sr) current = sr.i;
+      for (const d of devices)
+        if (d.type === "lamp" || d.type === "lamp-amber") {
+          const r = readings[d.id];
+          if (r && Math.abs(r.v) > 0.05) lit.add(d.id);
+        }
+      if (closed) {
         const loopRoot = uf.find(termKey(source.id, 0));
         for (const w of wires)
           if (
@@ -146,7 +195,13 @@ export function simulate(
           )
             live.add(w.id);
       }
+    } else if (nodal.fault) {
+      faults.push(nodal.fault);
     }
   }
-  return { lit, live, current, faults, closed };
+
+  return { lit, live, current, faults, closed, readings };
 }
+
+/** default EMF re-exported for labels/UI */
+export { emfOf };

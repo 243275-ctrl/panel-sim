@@ -546,3 +546,8 @@ body {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
+
+.field .ro.live-on {
+  color: var(--color-success);
+  font-weight: 600;
+}

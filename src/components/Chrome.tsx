@@ -6,6 +6,11 @@ import {
 import { CATEGORIES, LIBRARY, matches, TYPE_META } from "../data/library";
 import { DeviceArt } from "../art/Pictorial";
 import { parseAndValidate, serialize } from "../state/psim";
+import { simulate } from "../solver/solver";
+
+const fmtV = (v: number) => `${v.toFixed(2)} V`;
+const fmtI = (i: number) =>
+  Math.abs(i) < 1 ? `${(i * 1000).toFixed(1)} mA` : `${i.toFixed(3)} A`;
 
 export function TitleBar() {
   const s = useApp();
@@ -152,6 +157,7 @@ export function Toolbar() {
 
 export function StatusBar() {
   const s = useApp();
+  const sim = simulate(s.devices, s.wires, s.pressed, s.running);
   return (
     <footer className="statusbar" role="status">
       <span>
@@ -165,7 +171,9 @@ export function StatusBar() {
       </span>
       {s.notice && <span className="notice">{s.notice}</span>}
       <span className="mono">
-        {s.running ? "sim clock · dt 1 ms" : "—"}
+        {s.running
+          ? `${sim.current.toFixed(3)} A · ${sim.closed ? "loop closed" : "loop open"}`
+          : "—"}
       </span>
     </footer>
   );
@@ -238,6 +246,8 @@ export function PropertiesPanel() {
     s.selection?.kind === "w"
       ? s.wires.find((w) => w.id === s.selection!.id)
       : undefined;
+  const sim = simulate(s.devices, s.wires, s.pressed, s.running);
+  const live = sel && s.running ? sim.readings[sel.id] : undefined;
 
   return (
     <aside className="panel right" aria-label="Properties">
@@ -293,6 +303,16 @@ export function PropertiesPanel() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+            <div className="field">
+              <span className="ro">Live</span>
+              <div className={`ro ${live ? "live-on" : ""}`}>
+                {!s.running
+                  ? "stopped — press Run"
+                  : live
+                    ? `${fmtV(live.v)} · ${fmtI(live.i)}`
+                    : "— (no model yet)"}
               </div>
             </div>
             <div className="row-btns">
@@ -418,7 +438,7 @@ export function StartOverlay() {
           </button>
         </div>
         <p className="note">
-          Offline · no account · no paid tiers — M1 of the replica build.
+          Offline · no account · no paid tiers — real voltage & current readings.
         </p>
       </div>
     </div>

@@ -120,3 +120,21 @@ branches), then M3 motors + control.
   unmodelled-part faults only fire for devices that are actually wired.
 - Verified: tsc clean · vitest **15/15** · vite build OK. Multi-terminal devices
   (breakers 3p+, PLC I/O) still use the 2-terminal wiring model until M3.
+
+## M2 — Nodal solver: real voltage & current readings (2026-11-24)
+- **`src/solver/mna.ts`** — Modified Nodal Analysis (DC): node graph from wires +
+  ideal shorts (fuses/breakers/inductor/ground/closed switches), resistive stamps
+  (loads + instruments), voltage-source branch currents (DC/AC-RMS/battery/generator
+  defaults 24/230/400 V), Gaussian elimination with partial pivoting. Singular
+  systems (e.g. parallel ideal sources) report a clean fault instead of NaN.
+- **Modelled types now 35/55**: sources, ground, all switches (NO/NC/estop/selector/
+  keyswitch/2-way), lamps, resistors, buzzer/beacon, protective shorts (fuse, QF, MCCB,
+  FSP, RCCB, FR), passives (R/C/L/pot/NTC), instruments (V/A/multimeter/clamp —
+  1 MΩ voltmeter, 1 mΩ ammeter), connection hardware. Remaining 20 (motors, drives,
+  PLC I/O, contactor coils, transformers, sensors) → M3/M4.
+- **Short-circuit guard**: loop with zero/near-zero resistance → fault, no Infinity.
+- **UI**: properties show a **Live** row (V · mA/A) for the selected device; meter
+  faces display their reading (needle sweeps on V/A meters); status bar shows source
+  current + loop state; library tiles badge "simulated now" from real model flags.
+- Verified: **vitest 25/25** (9 loop + 10 nodal + 6 file), tsc clean, vite build OK.
+  Known limit: DC/RMS phasor-free model — AC shown as RMS magnitude; motors/coils M3.

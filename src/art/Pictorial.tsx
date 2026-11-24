@@ -126,7 +126,21 @@ function HeatSink({ n = 4, w = 40, h = 30 }: { n?: number; w?: number; h?: numbe
   );
 }
 
-export function DeviceArt({ type, lit }: { type: DeviceType; lit?: boolean }) {
+export interface Readout {
+  text: string;
+  /** normalized 0..1 deflection for analog faces */
+  frac?: number;
+}
+
+export function DeviceArt({
+  type,
+  lit,
+  readout,
+}: {
+  type: DeviceType;
+  lit?: boolean;
+  readout?: Readout;
+}) {
   switch (type) {
     case "source":
       return (
@@ -634,7 +648,7 @@ export function DeviceArt({ type, lit }: { type: DeviceType; lit?: boolean }) {
           <Tab dir={1} />
           <Box w={40} h={54} fill={C.darker} r={5} />
           <rect x={-14} y={-20} width={28} height={14} rx={2} fill={C.lcd} stroke={C.black} strokeWidth="1.2" />
-          <text x={0} y={-10} fontSize="8" textAnchor="middle" fill={C.darker} fontFamily="monospace">000.0</text>
+          <text x={0} y={-10} fontSize="8" textAnchor="middle" fill={C.darker} fontFamily="monospace">{readout ? readout.text : "000.0"}</text>
           <circle cx={0} cy={4} r={10} fill={C.body} stroke={C.black} strokeWidth="1.4" />
           <line x1={0} y1={4} x2={6} y2={-3} stroke={C.red} strokeWidth="2" />
           <circle cx={-9} cy={19} r={3.5} fill={C.black} stroke={C.metal} strokeWidth="1.2" />
@@ -649,7 +663,7 @@ export function DeviceArt({ type, lit }: { type: DeviceType; lit?: boolean }) {
           <path d="M -10 -6 a 12 12 0 1 1 20 8" stroke={C.darker} strokeWidth="6" fill="none" strokeLinecap="round" />
           <rect x={-14} y={-4} width={28} height={34} rx={4} fill={C.darker} stroke={C.black} strokeWidth="1.5" />
           <rect x={-9} y={2} width={18} height={10} rx={1.5} fill={C.lcd} />
-          <text x={0} y={10} fontSize="7" textAnchor="middle" fill={C.darker} fontFamily="monospace">12.4A</text>
+          <text x={0} y={10} fontSize="7" textAnchor="middle" fill={C.darker} fontFamily="monospace">{readout ? readout.text : "12.4A"}</text>
           <circle cx={-6} cy={22} r={3} fill={C.body2} />
           <circle cx={6} cy={22} r={3} fill={C.body2} />
         </g>
@@ -669,10 +683,23 @@ export function DeviceArt({ type, lit }: { type: DeviceType; lit?: boolean }) {
               <line key={i} x1={Math.cos(a) * 11} y1={Math.sin(a) * 11} x2={Math.cos(a) * 13.5} y2={Math.sin(a) * 13.5} stroke={C.dark} strokeWidth="1.2" />
             );
           })}
-          <line x1={0} y1={2} x2={isV ? 8 : -7} y2={isV ? -8 : -7} stroke={C.red} strokeWidth="1.8" />
+          {(() => {
+            const t = Math.min(1, Math.max(0, readout?.frac ?? 0));
+            const a = ((-140 + t * 280) * Math.PI) / 180;
+            return (
+              <line
+                x1={Math.cos(a) * 3}
+                y1={Math.sin(a) * 3}
+                x2={Math.cos(a) * 14}
+                y2={Math.sin(a) * 14}
+                stroke={C.red}
+                strokeWidth="1.8"
+              />
+            );
+          })()}
           <circle r={2} fill={C.darker} />
-          <text x={0} y={11} fontSize="8" fontWeight="bold" textAnchor="middle" fill={C.dark}>
-            {isV ? "V" : "A"}
+          <text x={0} y={11} fontSize="7" fontWeight="bold" textAnchor="middle" fill={C.dark}>
+            {readout ? readout.text : isV ? "V" : "A"}
           </text>
         </g>
       );

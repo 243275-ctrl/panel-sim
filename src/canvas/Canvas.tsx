@@ -324,6 +324,7 @@ export function Canvas() {
               key={d.id}
               d={d}
               lit={sim.lit.has(d.id)}
+              readout={meterReadout(d, sim.readings[d.id])}
               selected={
                 s.selection?.kind === "d" && s.selection.id === d.id
               }
@@ -366,6 +367,25 @@ function ScrewDot({ x, y }: { x: number; y: number }) {
   );
 }
 
+function meterReadout(
+  d: Device,
+  r?: { v: number; i: number },
+): { text: string; frac?: number } | undefined {
+  if (!r) return undefined;
+  switch (d.type) {
+    case "voltmeter":
+      return { text: `${r.v.toFixed(1)} V`, frac: r.v / 500 };
+    case "ammeter":
+      return { text: `${r.i.toFixed(2)} A`, frac: r.i / 50 };
+    case "multimeter":
+      return { text: `${r.v.toFixed(2)} V` };
+    case "clamp":
+      return { text: `${r.i.toFixed(2)} A` };
+    default:
+      return undefined;
+  }
+}
+
 function deviceLabel(d: Device): string {
   const short = (TYPE_META[d.type]?.short ?? d.type).toLowerCase();
   if (d.type === "source") return `${d.name} · ${d.params.v ?? 24} V`;
@@ -377,6 +397,7 @@ function deviceLabel(d: Device): string {
 function DeviceG(props: {
   d: Device;
   lit: boolean;
+  readout?: { text: string; frac?: number };
   selected: boolean;
   wireMode: boolean;
   wireFromHere: 0 | 1 | null;
@@ -384,7 +405,7 @@ function DeviceG(props: {
   onPointerDown: (e: React.PointerEvent, d: Device) => void;
   onTerminalClick: (e: React.MouseEvent, d: Device, term: 0 | 1) => void;
 }) {
-  const { d, lit, selected, wireMode, wireFromHere, k } = props;
+  const { d, lit, readout, selected, wireMode, wireFromHere, k } = props;
   const rot = d.rot ?? 0;
   return (
     <g
@@ -406,7 +427,7 @@ function DeviceG(props: {
         />
       )}
       <g transform={`rotate(${rot})${d.flip ? " scale(-1 1)" : ""}`}>
-        <DeviceArt type={d.type} lit={lit} />
+        <DeviceArt type={d.type} lit={lit} readout={readout} />
       </g>
       <text className="dev-label" y={44} textAnchor="middle">
         {deviceLabel(d)}
