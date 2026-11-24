@@ -218,3 +218,23 @@ branches), then M3 motors + control.
   missing `plcOut` — the UI never showed PLC DO power (tests passed, screen
   didn't). All three sites now pass `{plcOut, tripped}`.
 - Verified: **vitest 50/50** (9 files), tsc clean, vite build OK, live 200s.
+
+## Entrepreneurs + Brand (2026-11-24)
+- **Entrepreneur (replica-entrepreneur):** public-review research honest —
+  **0 reviews found** (MS Store says "There aren't any reviews yet"; no
+  Play/Reddit/HN/G2/Capterra presence; unrelated same-name apps excluded).
+  `reviews.csv` header-only; `reviews.py` refused empty input as designed;
+  `feedback.md` records sample size + checked sources; `fixes.md` grounds the
+  fix plan only in store facts [F], the commissioner brief [B] and parity
+  gaps [P]. Two `features.csv` rows added (original=no): full offline (no
+  license server), all devices free forever. Angle A recommended: "free
+  forever, offline, professional".
+- **Brand (replica-brand):**20→5 name candidates with run/to-run checks —
+  LadderLab rejected (ladderlab.dev, same category), Voltiq rejected (4+
+  live collisions); **PanelSim kept** (dissimilar to the original, no
+  same-category exact hit; domain/TM checks marked to run — no whois here).
+  Palette swapped: accent `#2f5bea` → `#6d28d9` violet-700 (different hue
+  family from original navy/sky `#1a3a6b`/`#0ea5e9`); contrast.py **0 AA
+  failures (accent AAA 7.10:1)**. Logo brief + voice guide in brand.md;
+  chrome title + index.html title now "PanelSim". Sweep with
+  brand.json (name/domain/4 colours): **Clean** (exit0).

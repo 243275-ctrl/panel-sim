@@ -1,0 +1,5 @@
+{
+  "avoid": ["EduVolt", "EduVolt Academy", "eduvolt"],
+  "domains": ["eduvoltacademy.com"],
+  "colors": ["#1a3a6b", "#0ea5e9", "#e0f2fe", "#f5a623"]
+}

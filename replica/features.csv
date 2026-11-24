@@ -32,3 +32,5 @@ Manufacturer logos (Siemens Delta Schneider WEG Pilz),assets,could,yes,skip,trad
 Their license-server activation scheme,licensing,could,yes,skip,not needed: app is fully free — no license server of any kind
 Reverse engineering or decompiling their app,legal,could,yes,skip,forbidden by ToS and skill rules
 Academy courses platform,scope,could,yes,skip,different product
+Works fully offline — no license verification server,platform,must,no,yes,vendor fact: app 'goes online from time to time to verify the license'; we have no server at all
+"All device types free forever — no tiers, no in-app purchases",platform,must,no,yes,"vendor fact: 45 free devices + Pro plans + IAP; standing rule: free forever, no payments ever"

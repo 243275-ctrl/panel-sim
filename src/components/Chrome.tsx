@@ -18,7 +18,7 @@ export function TitleBar() {
   return (
     <header className="titlebar">
       <span aria-hidden>⚡</span>
-      <span>panel-sim</span>
+      <span>PanelSim</span>
       <span className="project">— {s.projectName}</span>
       <span className="spacer" />
       <span className="win-controls" aria-hidden>
