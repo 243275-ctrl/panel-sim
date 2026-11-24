@@ -259,24 +259,41 @@ export interface Readout {
   frac?: number;
 }
 
+export interface IoLights {
+  ins: boolean[];
+  outs: boolean[];
+}
+
 export function DeviceArt({
   type,
   lit,
   readout,
+  io,
 }: {
   type: DeviceType;
   lit?: boolean;
   readout?: Readout;
+  io?: IoLights;
 }) {
   return (
     <g>
       <ArtDefs />
-      <Body type={type} lit={lit} readout={readout} />
+      <Body type={type} lit={lit} readout={readout} io={io} />
     </g>
   );
 }
 
-function Body({ type, lit, readout }: { type: DeviceType; lit?: boolean; readout?: Readout }) {
+function Body({
+  type,
+  lit,
+  readout,
+  io,
+}: {
+  type: DeviceType;
+  lit?: boolean;
+  readout?: Readout;
+  io?: IoLights;
+}) {
   switch (type) {
     case "source":
       return (
@@ -929,7 +946,7 @@ function Body({ type, lit, readout }: { type: DeviceType; lit?: boolean; readout
             {/* LCD */}
             <rect x={-17} y={-22} width={34} height={15} rx={2.5} fill={C.lcdDark} stroke={C.black} strokeWidth="1.3" />
             <rect x={-17} y={-22} width={34} height={6} rx={2.5} fill={C.white} opacity="0.12" />
-            <text x={0} y={-11.5} fontSize="9" textAnchor="middle" fill={C.lcdGreen} fontFamily="monospace" fontWeight="bold">50.0</text>
+            <text x={0} y={-11.5} fontSize="9" textAnchor="middle" fill={C.lcdGreen} fontFamily="monospace" fontWeight="bold">{readout ? readout.text : "50.0"}</text>
             {/* keypad */}
             {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
               const x = -16 + (i % 4) * 9.5;
@@ -950,6 +967,25 @@ function Body({ type, lit, readout }: { type: DeviceType; lit?: boolean; readout
             <Vents x={17} y={-6} n={4} w={4} />
           </g>
           <HeatSink n={5} w={46} h={56} />
+          {/* I/O terminals: L,N top · DI1,COM bottom (matches terminalPos) */}
+          {[-18, 18].map((x) => (
+            <g key={`t${x}`}>
+              <rect x={x - 2} y={-31} width={4} height={5} fill="url(#ps-metal-h)" stroke={C.dark} strokeWidth="1" />
+              <circle cx={x} cy={-30} r={3.4} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+              <line x1={x - 1.8} y1={-30} x2={x + 1.8} y2={-30} stroke={C.dark} strokeWidth="1.2" />
+            </g>
+          ))}
+          {[-18, 18].map((x) => (
+            <g key={`b${x}`}>
+              <rect x={x - 2} y={27} width={4} height={5} fill="url(#ps-metal-h)" stroke={C.dark} strokeWidth="1" />
+              <circle cx={x} cy={30} r={3.4} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+              <line x1={x - 1.8} y1={30} x2={x + 1.8} y2={30} stroke={C.dark} strokeWidth="1.2" />
+            </g>
+          ))}
+          <text x={-18} y={-34.5} fontSize="5.5" textAnchor="middle" fill={C.face} fontWeight="bold">L</text>
+          <text x={18} y={-34.5} fontSize="5.5" textAnchor="middle" fill={C.face} fontWeight="bold">N</text>
+          <text x={-18} y={38} fontSize="5.5" textAnchor="middle" fill={C.face} fontWeight="bold">DI1</text>
+          <text x={18} y={38} fontSize="5.5" textAnchor="middle" fill={C.face} fontWeight="bold">COM</text>
         </g>
       );
     case "servo-drive":
@@ -1179,12 +1215,21 @@ function Body({ type, lit, readout }: { type: DeviceType; lit?: boolean; readout
             <rect x={-23} y={-20} width={27} height={16} rx={2.5} fill="#123a2a" stroke={C.black} strokeWidth="1.3" />
             <rect x={-23} y={-20} width={27} height={5.5} rx={2.5} fill={C.white} opacity="0.1" />
             <text x={-9.5} y={-9} fontSize="7.5" textAnchor="middle" fill={C.lcdGreen} fontFamily="monospace" fontWeight="bold">RUN</text>
-            {/* LEDs */}
-            {[0, 1, 2, 3].map((i) => (
-              <g key={i}>
-                <circle cx={9 + i * 6} cy={-14} r={2.4} fill={i < 2 ? C.green : C.metal2} stroke={C.dark} strokeWidth="0.9" filter={i < 2 ? "url(#ps-glow)" : undefined} />
-              </g>
-            ))}
+            {/* I/O status LEDs aligned with their terminals */}
+            {[0, 1, 2, 3].map((i) => {
+              const x = -18 + i * 12;
+              const on = io?.ins?.[i] ?? false;
+              return (
+                <circle key={`i${i}`} cx={x} cy={-23} r={2.2} fill={on ? C.green : "#5c6874"} stroke={C.dark} strokeWidth="0.8" filter={on ? "url(#ps-glow)" : undefined} />
+              );
+            })}
+            {[0, 1, 2, 3].map((i) => {
+              const x = -18 + i * 12;
+              const on = io?.outs?.[i] ?? false;
+              return (
+                <circle key={`o${i}`} cx={x} cy={23} r={2.2} fill={on ? C.amber : "#5c6874"} stroke={C.dark} strokeWidth="0.8" filter={on ? "url(#ps-glow)" : undefined} />
+              );
+            })}
             {/* terminal rows */}
             {[0, 1].map((row) => (
               <g key={row}>
@@ -1199,6 +1244,27 @@ function Body({ type, lit, readout }: { type: DeviceType; lit?: boolean; readout
             ))}
             <Nameplate x={17} y={-16} w={16} text="PLC" />
           </g>
+          {/* I/O terminals: I0.x top, Q0.x bottom (matches terminalPos) */}
+          {[-18, -6, 6, 18].map((x) => (
+            <g key={`pt${x}`}>
+              <rect x={x - 2} y={-31} width={4} height={7} fill="url(#ps-metal-h)" stroke={C.dark} strokeWidth="1" />
+              <circle cx={x} cy={-30} r={3.4} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+              <line x1={x - 1.8} y1={-30} x2={x + 1.8} y2={-30} stroke={C.dark} strokeWidth="1.2" />
+            </g>
+          ))}
+          {[-18, -6, 6, 18].map((x) => (
+            <g key={`pb${x}`}>
+              <rect x={x - 2} y={24} width={4} height={7} fill="url(#ps-metal-h)" stroke={C.dark} strokeWidth="1" />
+              <circle cx={x} cy={30} r={3.4} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+              <line x1={x - 1.8} y1={30} x2={x + 1.8} y2={30} stroke={C.dark} strokeWidth="1.2" />
+            </g>
+          ))}
+          {["I0.0", "I0.1", "I0.2", "I0.3"].map((t, i) => (
+            <text key={t} x={-18 + i * 12} y={-34.5} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold">{t}</text>
+          ))}
+          {["Q0.0", "Q0.1", "Q0.2", "Q0.3"].map((t, i) => (
+            <text key={t} x={-18 + i * 12} y={40} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold">{t}</text>
+          ))}
           <DINSnip />
         </g>
       );

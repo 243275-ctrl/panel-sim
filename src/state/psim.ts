@@ -1,5 +1,7 @@
 // .psim project files — versioned JSON with fail-closed validation.
 import type { Device, DeviceType, Wire } from "./store";
+import { termCount } from "../data/library";
+import { ALL_TAGS, type Program } from "../solver/ladder";
 
 export const SCHEMA_VERSION = 1;
 
@@ -16,6 +18,8 @@ export interface PsimDoc {
   devices: Device[];
   wires: Wire[];
   annotations: unknown[];
+  /** ladder program (M3) — optional so v1 files without one still load */
+  program?: Program;
 }
 
 export const DEVICE_TYPES: DeviceType[] = [
@@ -76,8 +80,8 @@ export const DEVICE_TYPES: DeviceType[] = [
   "connector",
 ];
 
-function isTerm(v: unknown): v is 0 | 1 {
-  return v === 0 || v === 1;
+function isTerm(v: unknown): v is number {
+  return typeof v === "number" && Number.isInteger(v) && v >= 0;
 }
 
 export function serialize(
@@ -85,6 +89,7 @@ export function serialize(
   wires: Wire[],
   projectName: string,
   prev?: PsimMeta,
+  program?: Program,
 ): string {
   const now = new Date().toISOString();
   const doc: PsimDoc = {
@@ -98,8 +103,46 @@ export function serialize(
     devices,
     wires,
     annotations: [],
+    program: program && program.length ? program : undefined,
   };
   return JSON.stringify(doc, null, 2);
+}
+
+/** fail-closed ladder program shape check */
+function validateProgram(p: unknown, errors: string[]): Program | undefined {
+  if (p === undefined) return undefined;
+  if (!Array.isArray(p)) {
+    errors.push("program must be an array");
+    return undefined;
+  }
+  const contact = (c: unknown, at: string) => {
+    const ct = c as { tag?: unknown; nc?: unknown };
+    if (typeof ct?.tag !== "string" || !ALL_TAGS.includes(ct.tag))
+      errors.push(`${at}: unknown tag "${String(ct?.tag)}"`);
+    if (typeof ct?.nc !== "boolean") errors.push(`${at}: nc must be boolean`);
+  };
+  p.forEach((r, i) => {
+    const at = `program[${i}]`;
+    const rung = r as Record<string, unknown>;
+    if (typeof rung?.id !== "string" || !rung.id) errors.push(`${at}: id missing`);
+    if (!Array.isArray(rung?.branches)) errors.push(`${at}: branches missing`);
+    else
+      (rung.branches as unknown[]).forEach((b, j) => {
+        const br = b as { contacts?: unknown };
+        if (!Array.isArray(br?.contacts)) errors.push(`${at}.branches[${j}]: contacts missing`);
+        else (br.contacts as unknown[]).forEach((c, k) => contact(c, `${at}.branches[${j}].contacts[${k}]`));
+      });
+    if (rung?.tail !== undefined) {
+      if (!Array.isArray(rung.tail)) errors.push(`${at}: tail must be an array`);
+      else (rung.tail as unknown[]).forEach((c, j) => contact(c, `${at}.tail[${j}]`));
+    }
+    if (typeof rung?.coil !== "string" || !ALL_TAGS.includes(rung.coil as string))
+      errors.push(`${at}: coil must be a known tag`);
+    if (rung?.comment !== undefined && typeof rung.comment !== "string")
+      errors.push(`${at}: comment must be a string`);
+  });
+  if (errors.length) return undefined;
+  return p as Program;
 }
 
 export type ParseResult =
@@ -152,15 +195,23 @@ export function parseAndValidate(text: string): ParseResult {
     if (typeof w?.id !== "string" || !w.id) errors.push(`${at}: id missing`);
     else if (wids.has(w.id)) errors.push(`${at}: duplicate id "${w.id}"`);
     else wids.add(w.id);
+    const typeById = new Map(d.devices!.map((x) => [x.id, x.type]));
     for (const end of [w?.a, w?.b]) {
       if (!end || typeof end.dev !== "string" || !isTerm(end.term)) {
         errors.push(`${at}: malformed endpoint`);
         continue;
       }
-      if (!ids.has(end.dev))
+      if (!ids.has(end.dev)) {
         errors.push(`${at}: wire references missing device "${end.dev}"`);
+        continue;
+      }
+      const t = typeById.get(end.dev);
+      const max = t ? termCount(t) : 2;
+      if (end.term >= max)
+        errors.push(`${at}: terminal ${end.term} out of range for "${end.dev}" (has ${max})`);
     }
   }
+  const program = validateProgram(d.program, errors);
   if (errors.length) return { ok: false, errors };
   return {
     ok: true,
@@ -170,6 +221,7 @@ export function parseAndValidate(text: string): ParseResult {
       devices: d.devices as Device[],
       wires: d.wires as Wire[],
       annotations: [],
+      program,
     },
   };
 }

@@ -8,6 +8,7 @@ import {
   TitleBar,
   Toolbar,
 } from "./components/Chrome";
+import { LadderEditor } from "./components/Ladder";
 import { StoreProvider, useDispatchApp, useApp } from "./state/store";
 
 function Shell() {
@@ -30,6 +31,7 @@ function Shell() {
         <Canvas />
         <PropertiesPanel />
       </div>
+      {s.ladderOpen && <LadderEditor />}
       <StatusBar />
     </div>
   );

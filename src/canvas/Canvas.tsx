@@ -5,7 +5,7 @@ import {
   useApp,
   type Device,
 } from "../state/store";
-import { TYPE_META } from "../data/library";
+import { TYPE_META, termCount } from "../data/library";
 import { DeviceArt } from "../art/Pictorial";
 import { simulate } from "../solver/solver";
 
@@ -16,10 +16,30 @@ const snap = (v: number) => Math.round(v / SNAP) * SNAP;
 const clamp = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v));
 
-/** Terminal position in content coords, honouring flip + rotation. */
-export function terminalPos(d: Device, term: 0 | 1) {
-  let dx = term === 0 ? -TERM_DX : TERM_DX;
-  const dy = 0;
+/** Terminal position in content coords, honouring flip + rotation.
+ * terms 0/1 sit on the sides (±30, 0); extra I/O terminals run across the
+ * top (odd channels) and bottom edges — see termsOf() labels in library. */
+export function terminalPos(d: Device, term: number) {
+  const count = termCount(d.type);
+  let dx: number;
+  let dy: number;
+  if (term <= 1) {
+    dx = term === 0 ? -TERM_DX : TERM_DX;
+    dy = 0;
+  } else {
+    const extra = count - 2;
+    const topN = Math.ceil(extra / 2);
+    const botN = extra - topN;
+    const spread = (i: number, n: number) => (n <= 1 ? 0 : -18 + i * (36 / (n - 1)));
+    const idx = term - 2;
+    if (idx < topN) {
+      dx = spread(idx, topN);
+      dy = -31;
+    } else {
+      dx = spread(idx - topN, botN);
+      dy = 31;
+    }
+  }
   if (d.flip) dx = -dx;
   const rot = d.rot ?? 0;
   const [rx, ry] =
@@ -56,6 +76,13 @@ export function Canvas() {
     window.addEventListener("pointerup", up);
     return () => window.removeEventListener("pointerup", up);
   }, [s.pressed, dispatch]);
+
+  // PLC scan clock — one ladder scan per tick while running
+  useEffect(() => {
+    if (!s.running) return;
+    const id = window.setInterval(() => dispatch({ t: "tick" }), 150);
+    return () => window.clearInterval(id);
+  }, [s.running, dispatch]);
 
   // wheel zoom (non-passive)
   useEffect(() => {
@@ -164,10 +191,11 @@ export function Canvas() {
     e.stopPropagation();
     if (s.tool === "wire" || s.tool === "place") return;
     dispatch({ t: "select", sel: { kind: "d", id: d.id } });
-    if (d.type === "button" && s.running) dispatch({ t: "press", id: d.id });
+    if ((d.type === "button" || d.type === "button-nc") && s.running)
+      dispatch({ t: "press", id: d.id });
   };
 
-  const onTerminalClick = (e: React.MouseEvent, d: Device, term: 0 | 1) => {
+  const onTerminalClick = (e: React.MouseEvent, d: Device, term: number) => {
     e.stopPropagation();
     if (s.tool !== "wire") return;
     dispatch({ t: "wireClick", dev: d.id, term });
@@ -324,6 +352,12 @@ export function Canvas() {
               key={d.id}
               d={d}
               lit={sim.lit.has(d.id)}
+              readings={sim.readings}
+              io={
+                d.type === "plc"
+                  ? { ins: s.plc.inputs, outs: s.plc.outputs }
+                  : undefined
+              }
               readout={meterReadout(d, sim.readings[d.id])}
               selected={
                 s.selection?.kind === "d" && s.selection.id === d.id
@@ -381,16 +415,28 @@ function meterReadout(
       return { text: `${r.v.toFixed(2)} V` };
     case "clamp":
       return { text: `${r.i.toFixed(2)} A` };
+    case "vfd": {
+      const run = d.params.run === 1;
+      return { text: run ? `${(d.params.f ?? 50).toFixed(1)} Hz` : "STOP" };
+    }
     default:
       return undefined;
   }
 }
 
-function deviceLabel(d: Device): string {
+function deviceLabel(d: Device, readings?: Record<string, { v: number }>): string {
   const short = (TYPE_META[d.type]?.short ?? d.type).toLowerCase();
   if (d.type === "source") return `${d.name} · ${d.params.v ?? 24} V`;
   if (d.type === "resistor" || d.type === "lamp" || d.type === "lamp-amber")
     return `${d.name} · ${d.params.r ?? 100} Ω`;
+  if (d.type === "motor" || d.type === "motor-1ph" || d.type === "motor-dc") {
+    const v = Math.abs(readings?.[d.id]?.v ?? 0);
+    return v > 10
+      ? `${d.name} · ${Math.round((1500 * Math.min(v, 400)) / 400)} rpm`
+      : `${d.name} · stopped`;
+  }
+  if (d.type === "vfd")
+    return `${d.name} · ${d.params.run === 1 ? `${d.params.f ?? 50} Hz` : "stopped"}`;
   return `${d.name} · ${short}`;
 }
 
@@ -398,14 +444,16 @@ function DeviceG(props: {
   d: Device;
   lit: boolean;
   readout?: { text: string; frac?: number };
+  readings?: Record<string, { v: number }>;
+  io?: { ins: boolean[]; outs: boolean[] };
   selected: boolean;
   wireMode: boolean;
-  wireFromHere: 0 | 1 | null;
+  wireFromHere: number | null;
   k: number;
   onPointerDown: (e: React.PointerEvent, d: Device) => void;
-  onTerminalClick: (e: React.MouseEvent, d: Device, term: 0 | 1) => void;
+  onTerminalClick: (e: React.MouseEvent, d: Device, term: number) => void;
 }) {
-  const { d, lit, readout, selected, wireMode, wireFromHere, k } = props;
+  const { d, lit, readout, readings, io, selected, wireMode, wireFromHere, k } = props;
   const rot = d.rot ?? 0;
   return (
     <g
@@ -427,12 +475,12 @@ function DeviceG(props: {
         />
       )}
       <g transform={`rotate(${rot})${d.flip ? " scale(-1 1)" : ""}`}>
-        <DeviceArt type={d.type} lit={lit} readout={readout} />
+        <DeviceArt type={d.type} lit={lit} readout={readout} io={io} />
       </g>
       <text className="dev-label" y={44} textAnchor="middle">
-        {deviceLabel(d)}
+        {deviceLabel(d, readings)}
       </text>
-      {([0, 1] as const).map((t) => {
+      {Array.from({ length: termCount(d.type) }, (_, t) => {
         const p = terminalPos(d, t);
         const lx = p.x - d.x;
         const ly = p.y - d.y;

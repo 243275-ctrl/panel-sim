@@ -105,7 +105,7 @@ describe("M2 nodal analysis", () => {
   });
 
   it("reports conflicting ideal sources as singular", () => {
-    const v2: SolDevice = { id: "V2", type: "source", name: "V2", params: { v: 24 } };
+    const v2: SolDevice = { id: "V2", type: "source", name: "V2", params: { v: 12 } };
     const r1 = R("R1", 100);
     const wires = [
       w("w1", "V1", 1, "V2", 1),

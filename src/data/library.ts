@@ -10,8 +10,8 @@ export interface LibItem {
   category: string;
   prefix: string;
   sim: boolean;
-  /** terminal labels shown in the properties panel (term 0, term 1) */
-  terms: [string, string];
+  /** terminal labels indexed by terminal number (most devices: 2) */
+  terms: string[];
 }
 
 export const LIBRARY: LibItem[] = [
@@ -61,7 +61,7 @@ export const LIBRARY: LibItem[] = [
   { type: "motor-1ph", label: "Motor, 1-phase", meta: "with capacitor", category: "Motors", prefix: "M", sim: false, terms: ["U", "Z"] },
   { type: "motor-dc", label: "Motor, DC", meta: "shunt wound", category: "Motors", prefix: "MD", sim: false, terms: ["+", "−"] },
   // ---- Drives ----
-  { type: "vfd", label: "Frequency inverter", meta: "VFD with keypad", category: "Drives", prefix: "U", sim: false, terms: ["R", "S"] },
+  { type: "vfd", label: "Frequency inverter", meta: "VFD with keypad", category: "Drives", prefix: "U", sim: true, terms: ["U", "W", "L", "N", "DI1", "COM"] },
   { type: "servo-drive", label: "Servo drive", meta: "motion axis", category: "Drives", prefix: "SV", sim: false, terms: ["L1", "L2"] },
   // ---- Instruments ----
   { type: "multimeter", label: "Multimeter", meta: "V / A / Ω", category: "Instruments", prefix: "TQ", sim: true, terms: ["COM", "VΩ"] },
@@ -75,7 +75,7 @@ export const LIBRARY: LibItem[] = [
   { type: "photo-sensor", label: "Photoelectric sensor", meta: "through-beam", category: "Sensors", prefix: "B", sim: false, terms: ["BN", "BU"] },
   { type: "level-sensor", label: "Level switch", meta: "float type", category: "Sensors", prefix: "LG", sim: false, terms: ["1", "2"] },
   // ---- Automation ----
-  { type: "plc", label: "Compact PLC", meta: "ladder controller", category: "Automation", prefix: "PLC", sim: false, terms: ["L", "N"] },
+  { type: "plc", label: "Compact PLC", meta: "ladder controller", category: "Automation", prefix: "PLC", sim: true, terms: ["L+", "M", "I0.0", "I0.1", "I0.2", "I0.3", "Q0.0", "Q0.1", "Q0.2", "Q0.3"] },
   { type: "plc-expansion", label: "PLC expansion", meta: "I/O module", category: "Automation", prefix: "EX", sim: false, terms: ["L", "N"] },
   { type: "analog-module", label: "Analog module", meta: "0–10 V / 4–20 mA", category: "Automation", prefix: "AM", sim: false, terms: ["+", "−"] },
   // ---- Connection ----
@@ -99,7 +99,7 @@ export const CATEGORIES = [
   "Connection",
 ];
 
-const META: Record<string, { short: string; prefix: string; terms: [string, string] }> =
+const META: Record<string, { short: string; prefix: string; terms: string[] }> =
   Object.fromEntries(
     LIBRARY.map((l) => [
       l.type,
@@ -107,7 +107,17 @@ const META: Record<string, { short: string; prefix: string; terms: [string, stri
     ]),
   );
 
-export const TYPE_META: Record<string, { short: string; prefix: string; terms: [string, string] }> = META;
+export const TYPE_META: Record<string, { short: string; prefix: string; terms: string[] }> = META;
+
+/** terminal labels for a device type (always an array, length = terminal count) */
+export function termsOf(type: string): string[] {
+  return TYPE_META[type]?.terms ?? ["1", "2"];
+}
+
+/** how many terminals a type exposes (2 for almost everything) */
+export function termCount(type: string): number {
+  return termsOf(type).length;
+}
 
 export function matches(item: LibItem, q: string): boolean {
   if (!q) return true;

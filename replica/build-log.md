@@ -153,3 +153,32 @@ branches), then M3 motors + control.
   art), pins the ±30 terminal geometry contract, lamp glow + meter readouts, shadow
   presence on enclosure types. vitest include widened to `*.test.{ts,tsx}`.
 - Verified: **vitest 29/29** (25 + 4 art), tsc clean, vite build OK.
+
+## M3 — Professional sim: PLC programming, VFD, sensors (2026-11-24)
+- **Multi-terminal wiring**: terminals are now `number` with per-type labels —
+  PLC exposes **10 terminals** (L+, M, I0.0–I0.3 top, Q0.0–Q0.3 bottom), VFD **6**
+  (motor out U/W on the sides, mains L/N top, DI1/COM bottom). Art, hit-testing,
+  terminalPos layout, properties list and `.psim` validation all share the count.
+- **Ladder programming**: `solver/ladder.ts` — rungs of OR-branches + series tail +
+  coil (DOL seal-in shapes), tags I0.x/Q0.x/M0–M7, two evaluation passes per scan,
+  unknown tags fail safe. New **▤ Program editor** (add rung/branch/contact, NO↔NC,
+  tag selects, live TRUE highlighting, comments) stored inside `.psim`.
+- **Scan cycle**: store `tick` every 150 ms while running → MNA → input image from
+  DI terminal voltages (>12 V) → `evalLadder` → output image → next solve.
+  Outputs drop to safe state on Stop; scan counter in the status bar.
+- **MNA upgrade**: per-terminal voltages `tv[]`; PLC stamps (pwr R, 10 k DI sinks,
+  sourcing 24 V DO channels); VFD stamps (V/f output E=400·f/50, line-side R,
+  DI sense); Gaussian now handles isolated nodes as free variables (unwired Q
+  terminals) and still rejects inconsistent systems (conflicting sources).
+- **Settling loop**: contactor/relay coil >12 V → linked `grp` aux contacts switch
+  (NO closes / NC opens); VFD run = panel OR DI1>12 V; iterate MNA↔states ≤5 until
+  stable — sensors (prox/photo/pressure/level) change topology from their params.
+- **Models added**: motors (load + rpm label + spin), coils as loads, contactors/
+  relays/aux/changeover, all four sensors, PLC, VFD → 49/55 types modelled.
+- **UI**: PLC properties with I/O LED grid + scan count; VFD operator panel
+  (run/stop, fwd/rev, 0–120 Hz slider); sensor process controls; group-link
+  selector; third start example **"PLC demo — sensor → ladder → contactor → motor"**.
+- Verified: **vitest 38/38** (incl. end-to-end demo seal-in test + VFD test),
+  tsc clean, vite build OK, live dev server 200s. Honest limits: no timers/
+  analog scaling/safety blocks yet (M4), VFD modelled as V/f source (no fault
+  diagnostics), star-delta templates pending.

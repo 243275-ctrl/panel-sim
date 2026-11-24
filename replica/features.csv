@@ -3,10 +3,10 @@ Place devices and wire terminal-to-terminal,editor,must,yes,yes,M0 canvas: selec
 Device library with pictorial devices (45 free / 117 pro),library,must,yes,yes,"M1b: 55 types across all 12 categories (free=45, ours 55 incl. extras), own pictorial SVGs, categories + search, terminal list panel, DIN-rail board backdrop"
 Electrical simulation: compute voltages and currents across the circuit,simulation,must,yes,yes,"M2 nodal solver: real V/I on every device, live meters"
 Run / stop / reset simulation transport,simulation,must,yes,yes,M0 single-loop solver; full nodal analysis in M2
-Three-phase motor with full nameplate (6/9/12-lead),motors,must,yes,no,connection selectable
-Direct-on-line motor starter,motors,must,yes,no,
-Star-delta motor starter,motors,must,yes,no,gallery example
-Contactors and relays that open and close per circuit logic,control,must,yes,no,
+Three-phase motor with full nameplate (6/9/12-lead),motors,must,yes,yes,"M3: resistive load model, live rpm on label, spins from VFD or DOL"
+Direct-on-line motor starter,motors,must,yes,yes,M3: button/contact logic + linked contactor groups
+Star-delta motor starter,motors,must,yes,partial,M3: contactor groups ready; timed transition needs timers (M4)
+Contactors and relays that open and close per circuit logic,control,must,yes,yes,M3: coil >12 V energises; linked 13/14 NO & 21/22 NC follow group tag
 Push buttons and pilot lights,control,must,yes,partial,M0: NO button (hold while running) + pilot light on/off
 Overload relay trip and reset,protection,must,yes,no,
 Breakers and fuses trip on short circuit,protection,must,yes,no,
@@ -15,13 +15,13 @@ Multimeter (voltage and current),instruments,must,yes,yes,free in our build — 
 Clamp meter,instruments,must,yes,no,pro tier
 Save and open projects,files,must,yes,yes,M1: .psim JSON with fail-closed validation; download + file open (native dialogs on desktop shell)
 Export project to image and PDF,files,must,yes,no,
-Ladder editor with compact PLC run and watch,plc,should,yes,no,phase 2; generic PLC not Siemens-branded
-Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,no,phase 2
-Variable frequency drive with keypad parameters and faults,drives,should,yes,no,phase 2; generic VFD
+Ladder editor with compact PLC run and watch,plc,should,yes,yes,"M3: full ladder editor (branches, series tail, coils), live scan every 150 ms, I/O LEDs"
+Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,partial,M3: discrete sensor signals live (prox/photo/pressure/level as switches); analog scaling + Pt100 in M4
+Variable frequency drive with keypad parameters and faults,drives,should,yes,yes,"M3: keypad panel (run/stop, fwd/rev, 0–120 Hz), remote DI1 command, V/f output to motor"
 Undo / redo and copy / paste,editor,should,yes,partial,M1: undo/redo (Ctrl+Z/Y) done; copy/paste pending
 Grid snap rotate mirror pan and zoom,editor,should,yes,yes,"M1: 20px snap, R rotate, M mirror, drag pan, scroll zoom"
-Starter templates (DOL star-delta time switch safety relays),templates,should,yes,no,gallery examples
-Interlocks and safety-relay behavior,control,should,yes,no,
+Starter templates (DOL star-delta time switch safety relays),templates,should,yes,partial,PLC demo + pilot-light examples ship; star-delta/time-switch templates M4
+Interlocks and safety-relay behavior,control,should,yes,partial,NC-linked contacts give basic interlock; safety relay block M4
 English and Spanish UI,i18n,should,yes,no,store listing languages
 Reusable subcircuits,editor,could,yes,no,
 Growing device library packs,library,could,yes,no,store feature: library keeps growing

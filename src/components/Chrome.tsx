@@ -35,7 +35,7 @@ export function Toolbar() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onSave = () => {
-    const text = serialize(s.devices, s.wires, s.projectName);
+    const text = serialize(s.devices, s.wires, s.projectName, undefined, s.program);
     const blob = new Blob([text], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -63,6 +63,7 @@ export function Toolbar() {
       projectName: res.doc.meta.name,
       devices: res.doc.devices,
       wires: res.doc.wires,
+      program: res.doc.program,
       id: res.doc.meta.id,
     });
   };
@@ -144,6 +145,15 @@ export function Toolbar() {
       >
         ↺ Reset
       </button>
+      <span className="sep" />
+      <button
+        className={`tbtn ${s.ladderOpen ? "on" : ""}`}
+        aria-pressed={s.ladderOpen}
+        onClick={() => dispatch({ t: "ladder" })}
+        title="Ladder program editor"
+      >
+        ▤ Program
+      </button>
       <span className="hint">
         {s.tool === "place"
           ? "Click the canvas to place — Esc cancels"
@@ -174,6 +184,9 @@ export function StatusBar() {
         {s.running
           ? `${sim.current.toFixed(3)} A · ${sim.closed ? "loop closed" : "loop open"}`
           : "—"}
+      </span>
+      <span className="mono">
+        {s.program.length ? `PLC scan ${s.plc.scan}` : "no program"}
       </span>
     </footer>
   );
@@ -397,6 +410,210 @@ export function PropertiesPanel() {
                 close the contact.
               </p>
             )}
+
+            {/* ---- VFD operator panel (drive programming) ---- */}
+            {sel.type === "vfd" && (
+              <>
+                <div className="field">
+                  <span className="ro">state</span>
+                  <div className={`ro ${sel.params.run === 1 ? "live-on" : ""}`}>
+                    {sel.params.run === 1
+                      ? `RUN ${sel.params.dir === 1 ? "REV" : "FWD"} · ${(sel.params.f ?? 50).toFixed(1)} Hz`
+                      : "STOP"}
+                  </div>
+                </div>
+                <div className="field">
+                  <label htmlFor="vf">Frequency setpoint (Hz)</label>
+                  <input
+                    id="vf"
+                    type="range"
+                    min={0}
+                    max={120}
+                    step={0.5}
+                    value={sel.params.f ?? 50}
+                    onChange={(e) =>
+                      dispatch({ t: "param", id: sel.id, key: "f", value: Number(e.target.value) })
+                    }
+                  />
+                  <span className="ro mono">{(sel.params.f ?? 50).toFixed(1)} Hz</span>
+                </div>
+                <div className="row-btns">
+                  <button
+                    className="tbtn"
+                    onClick={() =>
+                      dispatch({ t: "param", id: sel.id, key: "run", value: sel.params.run === 1 ? 0 : 1 })
+                    }
+                  >
+                    {sel.params.run === 1 ? "■ Stop drive" : "▶ Run drive"}
+                  </button>
+                  <button
+                    className="tbtn"
+                    onClick={() =>
+                      dispatch({ t: "param", id: sel.id, key: "dir", value: sel.params.dir === 1 ? 0 : 1 })
+                    }
+                  >
+                    ⇄ {sel.params.dir === 1 ? "Reverse" : "Forward"}
+                  </button>
+                </div>
+                <p className="hint-text">
+                  Local control here; wire DI1/COM for a remote run command
+                  (24 V on DI1 starts the drive).
+                </p>
+              </>
+            )}
+
+            {/* ---- PLC status + program ---- */}
+            {sel.type === "plc" && (
+              <>
+                <div className="field">
+                  <span className="ro">inputs</span>
+                  <div className="io-row">
+                    {s.plc.inputs.map((v, i) => (
+                      <span key={i} className={`io-led ${v ? "on" : ""}`}>I0.{i}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="field">
+                  <span className="ro">outputs</span>
+                  <div className="io-row">
+                    {s.plc.outputs.map((v, i) => (
+                      <span key={i} className={`io-led out ${v ? "on" : ""}`}>Q0.{i}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="field">
+                  <span className="ro">scan</span>
+                  <div className="ro mono">{s.plc.scan} cycles · {s.program.length} rung(s)</div>
+                </div>
+                <div className="row-btns">
+                  <button className="tbtn" onClick={() => dispatch({ t: "ladder" })}>
+                    ▤ Open program editor
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* ---- sensor process values ---- */}
+            {sel.type === "proximity-sensor" && (
+              <div className="field">
+                <label htmlFor="tgt">Target present</label>
+                <select
+                  id="tgt"
+                  value={sel.params.target ?? 0}
+                  onChange={(e) =>
+                    dispatch({ t: "param", id: sel.id, key: "target", value: Number(e.target.value) })
+                  }
+                >
+                  <option value={0}>No target (output open)</option>
+                  <option value={1}>Target in range (output closes)</option>
+                </select>
+              </div>
+            )}
+            {sel.type === "photo-sensor" && (
+              <div className="field">
+                <label htmlFor="blk">Beam</label>
+                <select
+                  id="blk"
+                  value={sel.params.blocked ?? 0}
+                  onChange={(e) =>
+                    dispatch({ t: "param", id: sel.id, key: "blocked", value: Number(e.target.value) })
+                  }
+                >
+                  <option value={0}>Free (output open)</option>
+                  <option value={1}>Blocked (output closes)</option>
+                </select>
+              </div>
+            )}
+            {sel.type === "pressure-sensor" && (
+              <>
+                <div className="field">
+                  <label htmlFor="pv">Process value (bar)</label>
+                  <input
+                    id="pv"
+                    type="range"
+                    min={0}
+                    max={25}
+                    step={0.5}
+                    value={sel.params.pv ?? 0}
+                    onChange={(e) =>
+                      dispatch({ t: "param", id: sel.id, key: "pv", value: Number(e.target.value) })
+                    }
+                  />
+                  <span className="ro mono">{(sel.params.pv ?? 0).toFixed(1)} bar / SP {(sel.params.sp ?? 10).toFixed(1)}</span>
+                </div>
+                <div className="field">
+                  <label htmlFor="sp">Setpoint (bar)</label>
+                  <input
+                    id="sp"
+                    type="number"
+                    min={0}
+                    max={25}
+                    step={0.5}
+                    value={sel.params.sp ?? 10}
+                    onChange={(e) =>
+                      dispatch({ t: "param", id: sel.id, key: "sp", value: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </>
+            )}
+            {sel.type === "level-sensor" && (
+              <>
+                <div className="field">
+                  <label htmlFor="lv">Level (%)</label>
+                  <input
+                    id="lv"
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={sel.params.lv ?? 0}
+                    onChange={(e) =>
+                      dispatch({ t: "param", id: sel.id, key: "lv", value: Number(e.target.value) })
+                    }
+                  />
+                  <span className="ro mono">{(sel.params.lv ?? 0).toFixed(0)} % / SP {(sel.params.sp ?? 5).toFixed(0)} %</span>
+                </div>
+                <div className="field">
+                  <label htmlFor="lsp">Switch point (%)</label>
+                  <input
+                    id="lsp"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={sel.params.sp ?? 5}
+                    onChange={(e) =>
+                      dispatch({ t: "param", id: sel.id, key: "sp", value: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </>
+            )}
+
+            {/* ---- coil / contact group linking ---- */}
+            {["contactor", "contactor-rev", "relay", "aux-no", "aux-nc", "changeover"].includes(
+              sel.type,
+            ) && (
+              <div className="field">
+                <label htmlFor="grp">Linked tag group</label>
+                <select
+                  id="grp"
+                  value={sel.params.grp ?? 1}
+                  onChange={(e) =>
+                    dispatch({ t: "param", id: sel.id, key: "grp", value: Number(e.target.value) })
+                  }
+                >
+                  <option value={0}>Not linked</option>
+                  <option value={1}>K1 (KM1 ↔ 13/14 contacts)</option>
+                  <option value={2}>K2</option>
+                  <option value={3}>K3</option>
+                </select>
+                <p className="hint-text">
+                  Coils energise when &gt; 12 V appears across them; linked NO
+                  contacts close and NC contacts open.
+                </p>
+              </div>
+            )}
           </>
         )}
         {wireSel && (
@@ -426,15 +643,21 @@ export function StartOverlay() {
         <div className="actions">
           <button
             className="btn primary"
-            onClick={() => dispatch({ t: "start", example: false })}
+            onClick={() => dispatch({ t: "start", example: 0 })}
           >
             New blank project
           </button>
           <button
             className="btn secondary"
-            onClick={() => dispatch({ t: "start", example: true })}
+            onClick={() => dispatch({ t: "start", example: 1 })}
           >
             Load example — start / stop a pilot light
+          </button>
+          <button
+            className="btn secondary"
+            onClick={() => dispatch({ t: "start", example: 2 })}
+          >
+            PLC demo — sensor → ladder → contactor → motor
           </button>
         </div>
         <p className="note">

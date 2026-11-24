@@ -6,6 +6,8 @@ import {
   type Dispatch,
   type ReactNode,
 } from "react";
+import { emptyIO, type PlcIO, type Program } from "../solver/ladder";
+import { scanPlc } from "../solver/solver";
 
 export type ToolMode = "select" | "wire" | "place";
 export type DeviceType =
@@ -78,8 +80,8 @@ export interface Device {
 
 export interface Wire {
   id: string;
-  a: { dev: string; term: 0 | 1 };
-  b: { dev: string; term: 0 | 1 };
+  a: { dev: string; term: number };
+  b: { dev: string; term: number };
 }
 
 export type Selection = { kind: "d" | "w"; id: string } | null;
@@ -99,21 +101,27 @@ export interface State {
   tool: ToolMode;
   placeType: DeviceType | null;
   selection: Selection;
-  wireFrom: { dev: string; term: 0 | 1 } | null;
+  wireFrom: { dev: string; term: number } | null;
   running: boolean;
   pressed: string[];
   notice: string | null;
   past: DocSnap[];
   future: DocSnap[];
+  /** ladder program edited in the Program panel */
+  program: Program;
+  /** PLC image zone state — advanced one scan per tick while running */
+  plc: PlcIO;
+  /** Program (ladder) editor overlay */
+  ladderOpen: boolean;
 }
 
 export type Action =
-  | { t: "start"; example: boolean }
+  | { t: "start"; example: 0 | 1 | 2 }
   | { t: "tool"; tool: ToolMode }
   | { t: "placeType"; dt: DeviceType }
   | { t: "place"; id: string; x: number; y: number }
   | { t: "select"; sel: Selection }
-  | { t: "wireClick"; dev: string; term: 0 | 1 }
+  | { t: "wireClick"; dev: string; term: number }
   | { t: "deleteSel" }
   | { t: "run" }
   | { t: "stop" }
@@ -126,8 +134,19 @@ export type Action =
   | { t: "flip" }
   | { t: "undo" }
   | { t: "redo" }
-  | { t: "open"; projectName: string; devices: Device[]; wires: Wire[]; id: string }
-  | { t: "notice"; text: string | null };
+  | { t: "open"; projectName: string; devices: Device[]; wires: Wire[]; id: string; program?: Program }
+  | { t: "notice"; text: string | null }
+  | { t: "tick" }
+  | { t: "ladder" }
+  | { t: "pgAddRung" }
+  | { t: "pgDelRung"; id: string }
+  | { t: "pgAddBranch"; id: string }
+  | { t: "pgDelBranch"; id: string; idx: number }
+  | { t: "pgAddContact"; id: string; branch: number }
+  | { t: "pgDelContact"; id: string; branch: number; idx: number }
+  | { t: "pgSetContact"; id: string; branch: number; idx: number; tag?: string; nc?: boolean }
+  | { t: "pgSetCoil"; id: string; tag: string }
+  | { t: "pgSetComment"; id: string; text: string };
 
 export const uid = (prefix: string) =>
   prefix + Math.random().toString(36).slice(2, 9);
@@ -226,6 +245,56 @@ export function exampleProject() {
   return { devices: [v, s, h], wires };
 }
 
+/** demo: sensor → ladder (seal-in) → PLC output → contactor → motor */
+export function plcDemoProject() {
+  const dev = (
+    id: string,
+    type: DeviceType,
+    name: string,
+    x: number,
+    y: number,
+    params: Record<string, number> = {},
+  ): Device => ({ id, type, name, x, y, params });
+  const devices: Device[] = [
+    dev("V1", "source", "V1", 120, 150, { v: 24 }),
+    dev("PLC1", "plc", "PLC1", 360, 150, {}),
+    dev("SQ1", "proximity-sensor", "SQ1", 120, 350, { target: 0 }),
+    dev("KM1", "contactor", "KM1", 500, 350, { grp: 1, r: 1200 }),
+    dev("U1", "ac-source", "U1", 660, 150, { v: 230 }),
+    dev("A1", "aux-no", "A1", 660, 350, { grp: 1 }),
+    dev("M1", "motor", "M1", 800, 350, { connection: 12, r: 200 }),
+  ];
+  const w = (id: string, ad: string, at: number, bd: string, bt: number): Wire => ({
+    id,
+    a: { dev: ad, term: at },
+    b: { dev: bd, term: bt },
+  });
+  const wires: Wire[] = [
+    w("w1", "V1", 1, "PLC1", 0), // L+
+    w("w2", "V1", 0, "PLC1", 1), // M
+    w("w3", "V1", 1, "SQ1", 0), // sensor feed
+    w("w4", "SQ1", 1, "PLC1", 2), // → I0.0
+    w("w5", "PLC1", 6, "KM1", 0), // Q0.0 → coil
+    w("w6", "KM1", 1, "V1", 0), // coil return to M
+    w("w7", "U1", 1, "A1", 0), // power through linked NO contact
+    w("w8", "A1", 1, "M1", 0),
+    w("w9", "M1", 1, "U1", 0),
+  ];
+  const program: Program = [
+    {
+      id: "r1",
+      branches: [
+        { contacts: [{ tag: "I0.0", nc: false }] },
+        { contacts: [{ tag: "Q0.0", nc: false }] },
+      ],
+      tail: [],
+      coil: "Q0.0",
+      comment: "Proximity start with seal-in",
+    },
+  ];
+  return { devices, wires, program };
+}
+
 const initial: State = {
   started: false,
   projectName: "Untitled",
@@ -240,6 +309,9 @@ const initial: State = {
   notice: null,
   past: [],
   future: [],
+  program: [],
+  plc: emptyIO(),
+  ladderOpen: false,
 };
 
 function snap(s: State): DocSnap {
@@ -254,13 +326,24 @@ function snap(s: State): DocSnap {
 function base(state: State, a: Action): State {
   switch (a.t) {
     case "start": {
-      if (a.example) {
+      if (a.example === 1) {
         const ex = exampleProject();
         return {
           ...initial,
           started: true,
           projectName: "Example — pilot light",
           ...ex,
+        };
+      }
+      if (a.example === 2) {
+        const ex = plcDemoProject();
+        return {
+          ...initial,
+          started: true,
+          projectName: "PLC demo — sensor to motor",
+          ...ex,
+          notice:
+            "PLC demo: open ▤ Program, press Run, then set SQ1 ‘target present’ in Properties — the ladder seals Q0.0, KM1 pulls in and the motor runs.",
         };
       }
       return { ...initial, started: true };
@@ -285,8 +368,22 @@ function base(state: State, a: Action): State {
             : type === "lamp" || type === "resistor"
               ? { r: 100 }
               : type === "motor"
-                ? { connection: 12 }
-                : {},
+                ? { connection: 12, r: 200 }
+                : type === "vfd"
+                  ? { f: 50, run: 0, dir: 0 }
+                  : type === "contactor" || type === "contactor-rev" || type === "relay"
+                    ? { grp: 1, r: 1200 }
+                    : type === "aux-no" || type === "aux-nc" || type === "changeover"
+                      ? { grp: 1 }
+                      : type === "proximity-sensor"
+                        ? { target: 0 }
+                        : type === "photo-sensor"
+                          ? { blocked: 0 }
+                          : type === "pressure-sensor"
+                            ? { pv: 0, sp: 10 }
+                            : type === "level-sensor"
+                              ? { lv: 0, sp: 5 }
+                              : {},
       };
       return {
         ...state,
@@ -341,9 +438,14 @@ function base(state: State, a: Action): State {
       };
     }
     case "run":
-      return { ...state, running: true, notice: null };
+      return { ...state, running: true, notice: null, plc: emptyIO() };
     case "stop":
-      return { ...state, running: false, pressed: [] };
+      return {
+        ...state,
+        running: false,
+        pressed: [],
+        plc: { ...state.plc, inputs: [false, false, false, false], outputs: [false, false, false, false], mem: state.plc.mem.map(() => false) },
+      };
     case "reset":
       return {
         ...state,
@@ -398,6 +500,8 @@ function base(state: State, a: Action): State {
         projectName: a.projectName,
         devices: a.devices,
         wires: a.wires,
+        program: a.program ?? [],
+        plc: emptyIO(),
         selection: null,
         wireFrom: null,
         running: false,
@@ -430,6 +534,102 @@ function base(state: State, a: Action): State {
           notice: "Redone",
         };
       }
+    case "tick": {
+      if (!state.running) return state;
+      const io = scanPlc(state.devices, state.wires, state.pressed, true, state.program, state.plc);
+      return { ...state, plc: { ...io, scan: state.plc.scan + 1 } };
+    }
+    case "ladder":
+      return { ...state, ladderOpen: !state.ladderOpen };
+    case "pgAddRung": {
+      const rung = {
+        id: uid("r"),
+        branches: [{ contacts: [{ tag: "I0.0", nc: false }] }],
+        tail: [],
+        coil: "Q0.0",
+        comment: "",
+      };
+      return { ...state, program: [...state.program, rung] };
+    }
+    case "pgDelRung":
+      return { ...state, program: state.program.filter((r) => r.id !== a.id) };
+    case "pgAddBranch":
+      return {
+        ...state,
+        program: state.program.map((r) =>
+          r.id === a.id
+            ? { ...r, branches: [...r.branches, { contacts: [{ tag: "I0.1", nc: false }] }] }
+            : r,
+        ),
+      };
+    case "pgDelBranch":
+      return {
+        ...state,
+        program: state.program.map((r) =>
+          r.id === a.id
+            ? { ...r, branches: r.branches.filter((_, i) => i !== a.idx) }
+            : r,
+        ),
+      };
+    case "pgAddContact":
+      return {
+        ...state,
+        program: state.program.map((r) => {
+          if (r.id !== a.id) return r;
+          const used = new Set(
+            [...r.branches.flatMap((b) => b.contacts), ...(r.tail ?? [])].map((c) => c.tag),
+          );
+          const tag = ["I0.0", "I0.1", "Q0.0", "M0"].find((t) => !used.has(t)) ?? "M1";
+          const c = { tag, nc: false };
+          if (a.branch < 0) return { ...r, tail: [...(r.tail ?? []), c] };
+          return {
+            ...r,
+            branches: r.branches.map((b, i) =>
+              i === a.branch ? { ...b, contacts: [...b.contacts, c] } : b,
+            ),
+          };
+        }),
+      };
+    case "pgDelContact":
+      return {
+        ...state,
+        program: state.program.map((r) => {
+          if (r.id !== a.id) return r;
+          if (a.branch < 0) return { ...r, tail: (r.tail ?? []).filter((_, i) => i !== a.idx) };
+          return {
+            ...r,
+            branches: r.branches.map((b, i) =>
+              i === a.branch ? { ...b, contacts: b.contacts.filter((_, j) => j !== a.idx) } : b,
+            ),
+          };
+        }),
+      };
+    case "pgSetContact":
+      return {
+        ...state,
+        program: state.program.map((r) => {
+          if (r.id !== a.id) return r;
+          const patch = (c: { tag: string; nc: boolean }, i: number) =>
+            i === a.idx ? { ...c, ...(a.tag !== undefined ? { tag: a.tag } : {}), ...(a.nc !== undefined ? { nc: a.nc } : {}) } : c;
+          if (a.branch < 0) return { ...r, tail: (r.tail ?? []).map(patch) };
+          return {
+            ...r,
+            branches: r.branches.map((b, i) =>
+              i === a.branch ? { ...b, contacts: b.contacts.map(patch) } : b,
+            ),
+          };
+        }),
+      };
+    case "pgSetCoil":
+      return {
+        ...state,
+        program: state.program.map((r) => (r.id === a.id ? { ...r, coil: a.tag } : r)),
+      };
+    case "pgSetComment":
+      return {
+        ...state,
+        program: state.program.map((r) => (r.id === a.id ? { ...r, comment: a.text } : r)),
+      };
     default:
       return state;
   }

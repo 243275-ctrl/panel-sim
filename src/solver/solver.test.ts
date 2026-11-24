@@ -80,18 +80,18 @@ describe("simulate (M0 single loop)", () => {
     expect(r.faults).toEqual([]);
   });
 
-  it("refuses to close a loop through an unmodelled device", () => {
-    const M: SolDevice = {
-      id: "M1",
-      type: "motor",
-      name: "M1",
-      params: { connection: 12 },
+  it("refuses to close a loop through an unmodelled device (transformer)", () => {
+    const T: SolDevice = {
+      id: "TC1",
+      type: "transformer-1p",
+      name: "TC1",
+      params: {},
     };
     const wires: SolWire[] = [
-      { id: "w1", a: { dev: "V1", term: 1 }, b: { dev: "M1", term: 0 } },
-      { id: "w2", a: { dev: "M1", term: 1 }, b: { dev: "V1", term: 0 } },
+      { id: "w1", a: { dev: "V1", term: 1 }, b: { dev: "TC1", term: 0 } },
+      { id: "w2", a: { dev: "TC1", term: 1 }, b: { dev: "V1", term: 0 } },
     ];
-    const r = simulate([V, M], wires, [], true);
+    const r = simulate([V, T], wires, [], true);
     expect(r.closed).toBe(false);
     expect(r.faults.some((f) => f.includes("later milestone"))).toBe(true);
   });
