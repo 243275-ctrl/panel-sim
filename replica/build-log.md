@@ -200,3 +200,21 @@ branches), then M3 motors + control.
 - Honest limits kept: star-delta needs multi-terminal 3-phase hardware (not
   faked), 4–20 mA full loops & safety relay blocks remain roadmap, no VFD fault
   diagnostics.
+
+## M4b — Export (PNG/PDF) + overload protection + render fix (2026-11-24)
+- **Export toolbar**: 🖼 PNG (2× raster) and 📄 PDF. Pipeline: clone the canvas
+  SVG → inline `getComputedStyle` whitelist (grid/art already use presentation
+  attrs + in-document defs) → off-screen canvas → PNG, or JPEG → **hand-rolled
+  single-page PDF** (Catalog/Pages/Page/Image XObject, DCTDecode, byte-accurate
+  xref — zero dependencies, offline-safe in Electron). Pure PDF writer pinned by
+  a structural test (header, xref offsets, stream bytes).
+- **Thermal overload protection**: overload was a dumb wire — now a 1 mΩ shunt
+  (readable current, negligible drop) with trip rating property (0.1–16 A).
+  Each store tick measures live |I|; over-rating latches `tripped[id]` → solver
+  opens that device everywhere (stamps, bridges, readings i=0, voltage still
+  shown), UI shows **TRIP** badge + properties Reset button; global Reset
+  clears. Trips flow through scanPlc so PLC logic sees the real circuit.
+- **Render bug fixed**: Canvas/StatusBar/Properties `simulate()` calls were
+  missing `plcOut` — the UI never showed PLC DO power (tests passed, screen
+  didn't). All three sites now pass `{plcOut, tripped}`.
+- Verified: **vitest 50/50** (9 files), tsc clean, vite build OK, live 200s.

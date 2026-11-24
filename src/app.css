@@ -749,3 +749,9 @@ body {
   padding: 2px 4px;
   background: var(--color-bg);
 }
+
+.field .btn.secondary {
+  margin-top: 6px;
+  border-color: var(--color-danger, #c62828);
+  color: var(--color-danger, #c62828);
+}

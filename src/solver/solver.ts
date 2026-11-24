@@ -34,6 +34,8 @@ export interface SimResult {
 export interface SimCtx {
   /** PLC output image from the last scan (drives DO sourcing channels) */
   plcOut?: boolean[];
+  /** latched overload trips — tripped devices are open circuits */
+  tripped?: Record<string, boolean>;
 }
 
 const termKey = (dev: string, term: number) => `${dev}:${term}`;
@@ -215,7 +217,12 @@ export function simulate(
     readings: {},
   };
   for (let iter = 0; iter < 5; iter++) {
-    nodal = solveNodal(devices, wires, pressed, running, { switches, plcOut, runMap });
+    nodal = solveNodal(devices, wires, pressed, running, {
+      switches,
+      plcOut,
+      runMap,
+      tripped: ctx.tripped,
+    });
     const next = deriveStates(devices, nodal.readings, plcOut);
     const same =
       JSON.stringify(next.switches) === JSON.stringify(switches) &&
@@ -233,10 +240,12 @@ export function simulate(
   for (const d of devices)
     for (let t = 0; t < ufTerms(d); t++) uf.find(termKey(d.id, t));
   for (const w of wires) uf.union(termKey(w.a.dev, w.a.term), termKey(w.b.dev, w.b.term));
+  const tripped = ctx.tripped ?? {};
   const bridges = (d: SolDevice) =>
-    isShort(d, pressed, running, switches) ||
-    isResistive(d) ||
-    (d.type === "vfd" && runMap[d.id] === true);
+    !tripped[d.id] &&
+    (isShort(d, pressed, running, switches) ||
+      isResistive(d) ||
+      (d.type === "vfd" && runMap[d.id] === true));
   for (const d of devices)
     if (bridges(d)) uf.union(termKey(d.id, 0), termKey(d.id, 1));
 
@@ -248,7 +257,7 @@ export function simulate(
     if (closed) {
       const root = uf.find(termKey(source.id, 0));
       const loads = devices.filter(
-        (d) => isResistive(d) && uf.find(termKey(d.id, 0)) === root,
+        (d) => isResistive(d) && !tripped[d.id] && uf.find(termKey(d.id, 0)) === root,
       );
       const totalR = loads.reduce((s, d) => s + (resistanceOf(d) ?? 0), 0);
       if (loads.length === 0 || totalR < 0.01) {
@@ -309,9 +318,10 @@ export function scanPlc(
   program: Program,
   prev: PlcIO,
   dtMs = 150,
+  tripped: Record<string, boolean> = {},
 ): PlcIO {
   if (!running) return prev;
-  const sim = simulate(devices, wires, pressed, true, { plcOut: prev.outputs });
+  const sim = simulate(devices, wires, pressed, true, { plcOut: prev.outputs, tripped });
   const plc = devices.find((d) => d.type === "plc");
   const inputs = [false, false, false, false];
   if (plc) {

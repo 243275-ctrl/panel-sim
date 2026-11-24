@@ -37,6 +37,8 @@ export interface SolveOpt {
   switches?: Record<string, boolean>;
   plcOut?: boolean[];
   runMap?: Record<string, boolean>;
+  /** latched thermal-overload trips — open circuits until manual reset */
+  tripped?: Record<string, boolean>;
 }
 
 const termKey = (dev: string, term: number) => `${dev}:${term}`;
@@ -57,7 +59,6 @@ const SHORT_TYPES: DeviceType[] = [
   "mccb",
   "surge",
   "rccb",
-  "overload",
   "terminal-block",
   "junction-box",
   "connector",
@@ -119,6 +120,8 @@ export function resistanceOf(d: SolDevice): number | null {
     case "motor-1ph":
     case "motor-dc":
       return d.params.r || 200;
+    case "overload":
+      return 0.001; // shunt: readable current for the trip detector
     case "pt100":
       // standard Pt100 curve: R = 100·(1 + 0.00385·t) — wire it in series
       // with an ammeter or across a divider to read temperature live
@@ -305,6 +308,7 @@ export function solveNodal(
   // 3) resistive main-pair devices (2-terminal loads & coils)
   for (const d of devices) {
     if (d.type === "plc" || d.type === "vfd") continue;
+    if (opt.tripped?.[d.id]) continue; // tripped overload = open circuit
     const R = resistanceOf(d);
     if (R === null) continue;
     stampR(idx(d.id, 0), idx(d.id, 1), R);
@@ -370,7 +374,8 @@ export function solveNodal(
     const R = resistanceOf(d);
     if (R === null || isSource(d)) continue;
     const r = readings[d.id];
-    r.i = r.v / R;
+    if (opt.tripped?.[d.id]) r.i = 0;
+    else r.i = r.v / R;
   }
   if (plc) {
     const r = readings[plc.id];

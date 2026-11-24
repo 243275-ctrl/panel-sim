@@ -6,6 +6,7 @@ import {
 import { CATEGORIES, LIBRARY, matches, TYPE_META } from "../data/library";
 import { DeviceArt } from "../art/Pictorial";
 import { parseAndValidate, serialize } from "../state/psim";
+import { exportPanelPdf, exportPanelPng } from "../canvas/export";
 import { simulate } from "../solver/solver";
 
 const fmtV = (v: number) => `${v.toFixed(2)} V`;
@@ -104,6 +105,32 @@ export function Toolbar() {
         hidden
         onChange={onOpenFile}
       />
+      <button
+        className="tbtn"
+        title="Export panel as PNG image"
+        onClick={() => {
+          const svg = document.querySelector<SVGSVGElement>("svg.canvas");
+          if (!svg) return;
+          exportPanelPng(svg, s.projectName)
+            .then(() => dispatch({ t: "notice", text: "Exported PNG" }))
+            .catch(() => dispatch({ t: "notice", text: "PNG export failed" }));
+        }}
+      >
+        🖼 PNG
+      </button>
+      <button
+        className="tbtn"
+        title="Export panel as PDF document"
+        onClick={() => {
+          const svg = document.querySelector<SVGSVGElement>("svg.canvas");
+          if (!svg) return;
+          exportPanelPdf(svg, s.projectName)
+            .then(() => dispatch({ t: "notice", text: "Exported PDF" }))
+            .catch(() => dispatch({ t: "notice", text: "PDF export failed" }));
+        }}
+      >
+        📄 PDF
+      </button>
       <span className="sep" />
       <button
         className={`tbtn ${s.tool === "select" ? "on" : ""}`}
@@ -167,7 +194,10 @@ export function Toolbar() {
 
 export function StatusBar() {
   const s = useApp();
-  const sim = simulate(s.devices, s.wires, s.pressed, s.running);
+  const sim = simulate(s.devices, s.wires, s.pressed, s.running, {
+    plcOut: s.plc.outputs,
+    tripped: s.tripped,
+  });
   return (
     <footer className="statusbar" role="status">
       <span>
@@ -259,7 +289,10 @@ export function PropertiesPanel() {
     s.selection?.kind === "w"
       ? s.wires.find((w) => w.id === s.selection!.id)
       : undefined;
-  const sim = simulate(s.devices, s.wires, s.pressed, s.running);
+  const sim = simulate(s.devices, s.wires, s.pressed, s.running, {
+    plcOut: s.plc.outputs,
+    tripped: s.tripped,
+  });
   const live = sel && s.running ? sim.readings[sel.id] : undefined;
 
   return (
@@ -608,6 +641,38 @@ export function PropertiesPanel() {
                   {(sel.params.t ?? 20).toFixed(0)} °C ·{" "}
                   {(100 * (1 + 0.00385 * (sel.params.t ?? 20))).toFixed(1)} Ω
                 </span>
+              </div>
+            )}
+
+            {/* ---- thermal overload protection ---- */}
+            {sel.type === "overload" && (
+              <div className="field">
+                <label htmlFor="olr">Trip rating (A)</label>
+                <input
+                  id="olr"
+                  type="range"
+                  min={0.1}
+                  max={16}
+                  step={0.1}
+                  value={sel.params.in ?? 6.3}
+                  onChange={(e) =>
+                    dispatch({ t: "param", id: sel.id, key: "in", value: Number(e.target.value) })
+                  }
+                />
+                <span className="ro mono">
+                  {(sel.params.in ?? 6.3).toFixed(1)} A ·{" "}
+                  {sim.readings[sel.id] ? Math.abs(sim.readings[sel.id].i).toFixed(2) : "0.00"} A live
+                </span>
+                {s.tripped[sel.id] ? (
+                  <button
+                    className="btn secondary"
+                    onClick={() => dispatch({ t: "resetTrip", id: sel.id })}
+                  >
+                    ⚡ TRIPPED — press to Reset
+                  </button>
+                ) : (
+                  <span className="ro">Protection OK</span>
+                )}
               </div>
             )}
 

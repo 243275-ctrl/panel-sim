@@ -8,13 +8,13 @@ Direct-on-line motor starter,motors,must,yes,yes,M3: button/contact logic + link
 Star-delta motor starter,motors,must,yes,partial,M3: contactor groups ready; timed transition needs timers (M4)
 Contactors and relays that open and close per circuit logic,control,must,yes,yes,M3: coil >12 V energises; linked 13/14 NO & 21/22 NC follow group tag
 Push buttons and pilot lights,control,must,yes,partial,M0: NO button (hold while running) + pilot light on/off
-Overload relay trip and reset,protection,must,yes,no,
+Overload relay trip and reset,protection,must,yes,yes,"M4: live current vs rating (slider) latches a trip → circuit opens, TRIP badge, manual Reset; cleared on global Reset"
 Breakers and fuses trip on short circuit,protection,must,yes,no,
 Phase-loss fault detection,protection,must,yes,no,evidence: pricing page fault list
 Multimeter (voltage and current),instruments,must,yes,yes,free in our build — voltage & current modes
 Clamp meter,instruments,must,yes,no,pro tier
 Save and open projects,files,must,yes,yes,M1: .psim JSON with fail-closed validation; download + file open (native dialogs on desktop shell)
-Export project to image and PDF,files,must,yes,no,
+Export project to image and PDF,files,must,yes,yes,"M4: 🖼 PNG (2×) + 📄 PDF in the toolbar — SVG rasterised offline, dependency-free PDF writer (DCTDecode)"
 Ladder editor with compact PLC run and watch,plc,should,yes,yes,"M3+M4: rungs with branches/tail/coils, T0–T3 on-delay timers with presets, live TRUE highlighting"
 Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,partial,Pt100 live on the standard curve + meters; pressure/level give discrete setpoint signals; 4–20 mA loops later
 Variable frequency drive with keypad parameters and faults,drives,should,yes,yes,"M3: keypad panel (run/stop, fwd/rev, 0–120 Hz), remote DI1 command, V/f output to motor"

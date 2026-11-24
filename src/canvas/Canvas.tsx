@@ -66,7 +66,10 @@ export function Canvas() {
   );
   const suppressClick = useRef(false);
 
-  const sim = simulate(s.devices, s.wires, s.pressed, s.running);
+  const sim = simulate(s.devices, s.wires, s.pressed, s.running, {
+    plcOut: s.plc.outputs,
+    tripped: s.tripped,
+  });
 
   // release held buttons on any pointer-up
   useEffect(() => {
@@ -351,14 +354,21 @@ export function Canvas() {
             <DeviceG
               key={d.id}
               d={d}
-              lit={sim.lit.has(d.id)}
+              lit={
+                sim.lit.has(d.id) &&
+                !(d.type === "overload" && s.tripped[d.id])
+              }
               readings={sim.readings}
               io={
                 d.type === "plc"
                   ? { ins: s.plc.inputs, outs: s.plc.outputs }
                   : undefined
               }
-              readout={meterReadout(d, sim.readings[d.id])}
+              readout={
+                d.type === "overload" && s.tripped[d.id]
+                  ? { text: "TRIP", frac: 1 }
+                  : meterReadout(d, sim.readings[d.id])
+              }
               selected={
                 s.selection?.kind === "d" && s.selection.id === d.id
               }
@@ -415,6 +425,10 @@ function meterReadout(
       return { text: `${r.v.toFixed(2)} V` };
     case "clamp":
       return { text: `${r.i.toFixed(2)} A` };
+    case "overload": {
+      const rating = d.params.in ?? 6.3;
+      return { text: `${r.i.toFixed(2)} A`, frac: Math.min(1, r.i / rating) };
+    }
     case "vfd": {
       const run = d.params.run === 1;
       return { text: run ? `${(d.params.f ?? 50).toFixed(1)} Hz` : "STOP" };

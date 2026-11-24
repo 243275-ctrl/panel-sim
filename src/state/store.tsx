@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { emptyIO, type PlcIO, type Program } from "../solver/ladder";
-import { scanPlc } from "../solver/solver";
+import { scanPlc, simulate } from "../solver/solver";
 
 export type ToolMode = "select" | "wire" | "place";
 export type DeviceType =
@@ -113,6 +113,8 @@ export interface State {
   plc: PlcIO;
   /** Program (ladder) editor overlay */
   ladderOpen: boolean;
+  /** latched overload trips — manual reset */
+  tripped: Record<string, boolean>;
 }
 
 export type Action =
@@ -147,7 +149,9 @@ export type Action =
   | { t: "pgSetContact"; id: string; branch: number; idx: number; tag?: string; nc?: boolean }
   | { t: "pgSetCoil"; id: string; tag: string }
   | { t: "pgSetComment"; id: string; text: string }
-  | { t: "pgSetPreset"; id: string; sec: number };
+  | { t: "pgSetPreset"; id: string; sec: number }
+  | { t: "trip"; id: string }
+  | { t: "resetTrip"; id: string };
 
 export const uid = (prefix: string) =>
   prefix + Math.random().toString(36).slice(2, 9);
@@ -389,6 +393,7 @@ const initial: State = {
   program: [],
   plc: emptyIO(),
   ladderOpen: false,
+  tripped: {},
 };
 
 function snap(s: State): DocSnap {
@@ -554,6 +559,7 @@ function base(state: State, a: Action): State {
         pressed: [],
         selection: null,
         wireFrom: null,
+        tripped: {},
       };
     case "press":
       if (!state.running || state.pressed.includes(a.id)) return state;
@@ -637,7 +643,33 @@ function base(state: State, a: Action): State {
       }
     case "tick": {
       if (!state.running) return state;
-      const io = scanPlc(state.devices, state.wires, state.pressed, true, state.program, state.plc);
+      // thermal overload protection: latch a trip before the next scan
+      const sim = simulate(state.devices, state.wires, state.pressed, true, {
+        plcOut: state.plc.outputs,
+        tripped: state.tripped,
+      });
+      for (const d of state.devices) {
+        if (d.type !== "overload" || state.tripped[d.id]) continue;
+        const i = Math.abs(sim.readings[d.id]?.i ?? 0);
+        const rating = d.params.in ?? 6.3;
+        if (i > rating + 1e-9) {
+          return {
+            ...state,
+            tripped: { ...state.tripped, [d.id]: true },
+            notice: `${d.name} tripped: ${i.toFixed(2)} A > ${rating} A rating`,
+          };
+        }
+      }
+      const io = scanPlc(
+        state.devices,
+        state.wires,
+        state.pressed,
+        true,
+        state.program,
+        state.plc,
+        150,
+        state.tripped,
+      );
       return { ...state, plc: { ...io, scan: state.plc.scan + 1 } };
     }
     case "ladder":
@@ -726,6 +758,18 @@ function base(state: State, a: Action): State {
         ...state,
         program: state.program.map((r) => (r.id === a.id ? { ...r, coil: a.tag } : r)),
       };
+    case "trip":
+      if (state.tripped[a.id]) return state;
+      return {
+        ...state,
+        tripped: { ...state.tripped, [a.id]: true },
+        notice: `${state.devices.find((d) => d.id === a.id)?.name ?? "Overload"} tripped — press Reset in its properties`,
+      };
+    case "resetTrip": {
+      const t = { ...state.tripped };
+      delete t[a.id];
+      return { ...state, tripped: t };
+    }
     case "pgSetPreset":
       return {
         ...state,
