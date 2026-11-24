@@ -16,9 +16,13 @@ node_modules/
 dist/
 out/
 target/
-build/
+build/*
+!build/icon.ico
 __pycache__/
 *.pyc
 
 # Local tool state
 .claude/
+
+# packaging output
+release/

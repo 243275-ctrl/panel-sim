@@ -90,3 +90,14 @@ sandbox), copy/paste, native file dialogs, drag-move.
 
 **Next:** M2 — full nodal DC solver (multiple sources, ground, parallel
 branches), then M3 motors + control.
+
+## 2026-11-24 — Windows packaging
+
+- `npm run package:win` builds a real **PanelSim.exe** (Electron 41, x64) —
+  verified: PE32+ GUI executable, asar contains dist/ + electron/ + package.json.
+- Local NSIS installer step needs `wine` (unavailable in sandbox) — falls
+  back to the portable zip, and `.github/workflows/windows-release.yml`
+  builds the native installer on `windows-latest` (triggered by tag `v*`).
+- Icon: `build/icon.ico` drawn with PIL (our own art, chrome + live bolt).
+- `vite base: "./"` for file:// loading; CSP meta removed (Electron
+  webPreferences provide isolation: contextIsolation + sandbox).
