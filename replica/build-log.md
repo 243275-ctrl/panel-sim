@@ -238,3 +238,23 @@ branches), then M3 motors + control.
   failures (accent AAA 7.10:1)**. Logo brief + voice guide in brand.md;
   chrome title + index.html title now "PanelSim". Sweep with
   brand.json (name/domain/4 colours): **Clean** (exit0).
+
+## Launch phase (2026-11-24)
+- **pricing.md**: $0 forever, everything included — no Stripe by standing
+  rule; internal-only comparison (vendor facts dated2026-11-24).
+- **Landing page** `docs/index.html` (GitHub Pages-ready, self-contained:
+  no CDN/fonts, violet brand, real screenshots only, no fake proof, no
+  original name). Sections: hero(angle A) → problem → how it works →
+  features → pricing → FAQ → CTA.
+- **Screenshots**: Playwright chromium (deps installed via
+  `playwright install-deps`) → `docs/assets/shot-{start,demo,landing}.png`
+  (real captures: PLC demo running with live scan counter, ladder editor).
+  Script: `scripts/screenshot.mjs`; playwright added as devDependency.
+- **listing.json** (App Store + Play copy, reusable for MS Store text) →
+  `listing.py`: **0 errors, 0 warnings** after trimming keywords to98/100
+  and short description to67/80, removing "free" claims from short fields.
+- **launch-plan.md**: channels (GitHub Releases live; Pages pending user's
+  go; Store = user's account step), audience map, first-10 conversations,
+  no-telemetry stance, honest metrics.
+- **Preflight (all green)**: sweep clean · listing0/0 · parity exit0 ·
+  tsc clean · vitest 50/50 · vite build OK.

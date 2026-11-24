@@ -724,7 +724,7 @@ export function StartOverlay() {
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label="Start">
       <div className="start-card">
-        <h1>panel-sim</h1>
+        <h1>PanelSim</h1>
         <p>Industrial panel simulator for Windows — every part is free</p>
         <div className="actions">
           <button

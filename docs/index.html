@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PanelSim — Professional panel &amp; PLC simulator, free forever</title>
+<meta name="description" content="Wire real industrial devices, program the ladder, run VFDs and sensors — offline on Windows. Every device free, forever. No tiers, no account, no license checks." />
+<meta property="og:title" content="PanelSim — Professional panel &amp; PLC simulator" />
+<meta property="og:description" content="Every device free, forever. Offline on Windows." />
+<meta property="og:image" content="assets/shot-demo.png" />
+<style>
+  :root {
+    --accent: #6d28d9; --accent-ink: #ffffff; --ink: #14171c; --muted: #5b6470;
+    --bg: #ffffff; --surface: #f6f7f9; --border: #e3e6ea; --chrome: #1b2431;
+    --success: #1f7a4d; --radius: 10px;
+    --font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font: 16px/1.6 var(--font); color: var(--ink); background: var(--bg); }
+  a { color: var(--accent); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  header.bar { background: var(--chrome); color: #f5f7fa; }
+  header.bar .wrap { display: flex; align-items: center; gap: 12px; height: 56px; }
+  header.bar .logo { font-weight: 700; font-size: 18px; letter-spacing: .2px; }
+  header.bar .logo span { color: #a78bfa; }
+  header.bar nav { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
+  header.bar nav a { color: #cbd5e1; text-decoration: none; }
+  header.bar nav a:hover { color: #fff; }
+  .hero { padding: 64px 0 40px; background: linear-gradient(180deg, #f6f3ff 0%, #ffffff 100%); }
+  .hero h1 { font-size: 40px; line-height: 1.15; margin: 0 0 14px; letter-spacing: -.5px; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.sub { font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 0 26px; }
+  .btn { display: inline-block; background: var(--accent); color: var(--accent-ink);
+    font-weight: 600; text-decoration: none; padding: 13px 26px; border-radius: 8px; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .cta-note { font-size: 13px; color: var(--muted); }
+  .shot { margin: 36px 0 0; border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; box-shadow: 0 12px 32px rgba(20,23,28,.14); }
+  .shot img { display: block; width: 100%; height: auto; }
+  section { padding: 56px 0; }
+  section.tint { background: var(--surface); }
+  h2 { font-size: 28px; margin: 0 0 10px; letter-spacing: -.3px; }
+  .lead { color: var(--muted); max-width: 680px; margin: 0 0 28px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+  .card .num { display: inline-flex; width: 30px; height: 30px; border-radius: 999px;
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 14px;
+    align-items: center; justify-content: center; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; font-size: 14.5px; color: var(--muted); }
+  .feats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .feat { display: flex; gap: 12px; background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px; }
+  .feat .tick { color: var(--success); font-weight: 700; flex: none; }
+  .feat b { display: block; font-size: 15px; }
+  .feat span { font-size: 13.5px; color: var(--muted); }
+  .pricebox { background: var(--chrome); color: #f5f7fa; border-radius: 14px;
+    padding: 34px; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+  .pricebox .big { font-size: 46px; font-weight: 800; color: #a78bfa; line-height: 1; }
+  .pricebox .big small { font-size: 16px; font-weight: 500; color: #cbd5e1; display: block; margin-top: 6px; }
+  .pricebox ul { margin: 0; padding: 0; list-style: none; columns: 2; font-size: 14.5px; }
+  .pricebox li { padding: 4px 0; }
+  .pricebox li::before { content: "✓ "; color: #6ee7b7; font-weight: 700; }
+  .faq { max-width: 760px; }
+  .faq details { border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; background: #fff; }
+  .faq summary { font-weight: 600; cursor: pointer; }
+  .faq p { margin: 10px 0 0; color: var(--muted); font-size: 15px; }
+  .final { text-align: center; }
+  .final h2 { font-size: 32px; }
+  footer { background: var(--chrome); color: #94a3b8; font-size: 13.5px; padding: 26px 0; }
+  footer .wrap { display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
+  footer a { color: #cbd5e1; }
+  @media (max-width: 820px) {
+    .hero h1 { font-size: 30px; }
+    .grid3, .feats { grid-template-columns: 1fr; }
+    .pricebox ul { columns: 1; }
+    header.bar nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="logo">⚡ Panel<span>Sim</span></div>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/243275-ctrl/panel-sim">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>Professional panel &amp; PLC simulator —<br /><em>every device free, forever.</em></h1>
+    <p class="sub">Wire real industrial devices terminal to terminal, program the
+      ladder, run VFDs and sensors — offline on Windows. No tiers, no account,
+      no license checks.</p>
+    <div class="cta-row">
+      <a class="btn" href="https://github.com/243275-ctrl/panel-sim/releases/latest">Download for Windows</a>
+      <a class="btn ghost" href="https://github.com/243275-ctrl/panel-sim">View source on GitHub</a>
+      <span class="cta-note">Setup.exe + portable zip · Windows 10/11 · ~200 MB</span>
+    </div>
+    <div class="shot"><img src="assets/shot-demo.png" alt="PanelSim running the PLC demo: sensor to ladder to contactor to motor, live scan counter" width="1440" height="900" /></div>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <h2>Learning a panel shouldn't require a subscription</h2>
+    <p class="lead">Free tiers usually stop you at a handful of devices, the useful
+      half sits behind a Pro plan, and the app wants to check its license online —
+      right when the classroom Wi-Fi drops. PanelSim removes all three: the whole
+      library, offline, with nothing to activate.</p>
+    <div class="grid3">
+      <div class="card"><h3>No device caps</h3><p>All 55+ device types — contactors, PLCs, drives, sensors, meters — included from the first launch.</p></div>
+      <div class="card"><h3>No license checks</h3><p>There is no server. The app never phones home, never deactivates, never expires.</p></div>
+      <div class="card"><h3>No account</h3><p>Open it and build. Projects save as plain <code>.psim</code> files you own.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="tint">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="lead">Three steps from empty canvas to a running motor.</p>
+    <div class="grid3">
+      <div class="card"><div class="num">1</div><h3>Place &amp; wire</h3><p>Drag pictorial devices from the library and connect them terminal to terminal, like the real panel.</p></div>
+      <div class="card"><div class="num">2</div><h3>Program &amp; run</h3><p>Open the ladder editor, write start/stop and seal-in logic, press ▶ Run — the PLC scans live every 150 ms.</p></div>
+      <div class="card"><div class="num">3</div><h3>Measure &amp; export</h3><p>Read volts and amps with the instruments, watch the overload trip, export the panel as PNG or PDF.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <h2>Built for the whole control loop</h2>
+    <p class="lead">Not just a drawing tool — the circuit behaves.</p>
+    <div class="feats">
+      <div class="feat"><span class="tick">✓</span><div><b>PLC ladder editor</b><span>Branches, seal-ins, NO/NC, T0–T3 on-delay timers, live TRUE highlighting and a scan counter.</span></div></div>
+      <div class="feat"><span class="tick">✓</span><div><b>VFD keypad</b><span>Run/stop, forward/reverse, 0–120 Hz — local panel or remote DI1 command from a PLC output.</span></div></div>
+      <div class="feat"><span class="tick">✓</span><div><b>Functional sensors</b><span>Proximity, photoelectric, pressure and level sensors change the circuit for real and feed PLC inputs.</span></div></div>
+      <div class="feat"><span class="tick">✓</span><div><b>Real interlocks &amp; protection</b><span>Linked contactor aux contacts, NC interlocks, thermal overload that trips at its rating and resets on demand.</span></div></div>
+      <div class="feat"><span class="tick">✓</span><div><b>Instruments</b><span>Voltmeter, ammeter, multimeter and clamp — live readings while the simulation runs.</span></div></div>
+      <div class="feat"><span class="tick">✓</span><div><b>PNG &amp; PDF export</b><span>One click to share the panel with your instructor or your team — no watermark, no account.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="tint">
+  <div class="wrap">
+    <h2>Pricing</h2>
+    <p class="lead">One plan. Nothing to unlock.</p>
+    <div class="pricebox">
+      <div class="big">$0<small>forever · every feature</small></div>
+      <ul>
+        <li>All 55+ device types</li>
+        <li>PLC editor + live scan</li>
+        <li>VFD, sensors, timers</li>
+        <li>Protection &amp; instruments</li>
+        <li>PNG / PDF export</li>
+        <li>Offline forever</li>
+        <li>No ads, no telemetry</li>
+        <li>No Pro tier — ever</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <div class="faq">
+      <details open><summary>Does it work offline?</summary><p>Yes — completely. There is no backend, no account system and no license server. The only time your PC needs the network is to download the installer.</p></details>
+      <details><summary>What do I need to run it?</summary><p>Windows 10 or 11, 64-bit. The installer and a portable zip are both on the releases page.</p></details>
+      <details><summary>Do I need an account or a key?</summary><p>No. Install, press File → it just runs. Projects are plain files you can back up or share.</p></details>
+      <details><summary>Is my data sent anywhere?</summary><p>No telemetry, no analytics, no cookies — the app and this page collect nothing.</p></details>
+      <details><summary>Can I use it commercially / in class?</summary><p>Yes for teaching and learning. It is a training simulator: always have real installations checked by a qualified professional against applicable standards.</p></details>
+      <details><summary>Is the source available?</summary><p>Yes — github.com/243275-ctrl/panel-sim. Issues and feature requests welcome.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>Build your first panel in the next five minutes</h2>
+    <p class="lead" style="margin:0 auto 24px;">Download, open the PLC demo, press Run — sensor to motor, live.</p>
+    <a class="btn" href="https://github.com/243275-ctrl/panel-sim/releases/latest">Download PanelSim for Windows</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>PanelSim — industrial panel simulator. Free forever, offline by design.</span>
+    <span><a href="https://github.com/243275-ctrl/panel-sim">GitHub</a> · <a href="https://github.com/243275-ctrl/panel-sim/releases">Releases</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

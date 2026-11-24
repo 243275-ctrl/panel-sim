@@ -1,0 +1,20 @@
+{
+  "avoid": [
+    "EduVolt",
+    "EduVolt Academy",
+    "eduvolt"
+  ],
+  "app_store": {
+    "name": "PanelSim: Panel & PLC Sim",
+    "subtitle": "Every device, offline",
+    "promotional_text": "PLC ladder, VFD keypad and live sensors — all free forever, no account, no license checks.",
+    "description": "PanelSim is an industrial electrical panel simulator for learning control and power circuits safely.\n\nWhat you get:\n- Pictorial devices: contactors, relays, breakers, motors, VFDs, sensors, meters\n- Terminal-to-terminal wiring with a real solver\n- PLC ladder editor with live scanning, timers and seal-in logic\n- VFD keypad: run/stop, direction, 0-120 Hz\n- Thermal overload protection, interlocks, instruments\n- Export your panel to PNG or PDF\n\nEvery feature is included. Free forever. Works fully offline — no account, no subscriptions, no license checks.",
+    "keywords": "ladder logic,contactor,vfd,automation,trainer,circuit simulator,wiring,motor starter,relay,breaker",
+    "whats_new": "Timers T0-T3, timed-sequence and flasher templates, Pt100 temperature model, PNG/PDF export, overload protection."
+  },
+  "google_play": {
+    "title": "PanelSim: Panel & PLC Sim",
+    "short_description": "Industrial panel simulator: ladder, VFD and sensors. Works offline.",
+    "full_description": "PanelSim is an industrial electrical panel simulator for learning control and power circuits safely.\n\nWhat you get:\n- Pictorial devices: contactors, relays, breakers, motors, VFDs, sensors, meters\n- Terminal-to-terminal wiring with a real solver\n- PLC ladder editor with live scanning, timers and seal-in logic\n- VFD keypad: run/stop, direction, 0-120 Hz\n- Thermal overload protection, interlocks, instruments\n- Export your panel to PNG or PDF\n\nEvery feature is included. Free forever. Works fully offline — no account, no subscriptions, no license checks."
+  }
+}
