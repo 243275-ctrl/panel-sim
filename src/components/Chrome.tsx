@@ -211,7 +211,7 @@ export function LibraryPanel() {
                   onClick={() => dispatch({ t: "placeType", dt: it.type })}
                 >
                   <span className="glyph" aria-hidden>
-                    <svg viewBox="-40 -36 80 72" width="40" height="36">
+                    <svg viewBox="-44 -46 88 92" width="32" height="34">
                       <DeviceArt type={it.type} />
                     </svg>
                   </span>

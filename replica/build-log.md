@@ -138,3 +138,18 @@ branches), then M3 motors + control.
   current + loop state; library tiles badge "simulated now" from real model flags.
 - Verified: **vitest 25/25** (9 loop + 10 nodal + 6 file), tsc clean, vite build OK.
   Known limit: DC/RMS phasor-free model — AC shown as RMS magnitude; motors/coils M3.
+
+## M1b-polish — Pictorial art v2: material system (2026-11-24)
+- User rated first art pass at **60%** quality — full rework of `src/art/Pictorial.tsx`:
+  shared **material system** (12 gradients: brushed metal, body/face plastic, dark
+  housing, red/green/amber/blue/copper, LCD, three lens radials, gloss) + **filters**
+  (drop shadows ×2 scales, lamp glow), unified top-left light direction.
+- Detail pass on all 55 types: cross-slot screws, bevelled enclosures with gloss/shade
+  edges, recessed breaker toggles with red rockers, contactor terminal banks + coil
+  window, motor fins/flange/shaft/fan cover, VFD LCD glow + individual keypad caps,
+  meter glass-streak + needle sweep, PLC LED glow + terminal cavities, nameplates,
+  vents, DIN clips. Ground gained metal entry stubs so wires land on metal.
+- **New `art.test.tsx`**: renders all 55 types server-side (no empty/undefined/NaN
+  art), pins the ±30 terminal geometry contract, lamp glow + meter readouts, shadow
+  presence on enclosure types. vitest include widened to `*.test.{ts,tsx}`.
+- Verified: **vitest 29/29** (25 + 4 art), tsc clean, vite build OK.
