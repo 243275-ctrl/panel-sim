@@ -1,0 +1,34 @@
+feature,area,priority,original,clone,notes
+Place devices and wire terminal-to-terminal,editor,must,yes,no,core canvas interaction
+Device library with pictorial devices (45 free / 117 pro),library,must,yes,no,own artwork only
+Electrical simulation: compute voltages and currents across the circuit,simulation,must,yes,no,
+Run / stop / reset simulation transport,simulation,must,yes,no,
+Three-phase motor with full nameplate (6/9/12-lead),motors,must,yes,no,connection selectable
+Direct-on-line motor starter,motors,must,yes,no,
+Star-delta motor starter,motors,must,yes,no,gallery example
+Contactors and relays that open and close per circuit logic,control,must,yes,no,
+Push buttons and pilot lights,control,must,yes,no,
+Overload relay trip and reset,protection,must,yes,no,
+Breakers and fuses trip on short circuit,protection,must,yes,no,
+Phase-loss fault detection,protection,must,yes,no,evidence: pricing page fault list
+Multimeter (voltage and current),instruments,must,yes,no,free tier: one device
+Clamp meter,instruments,must,yes,no,pro tier
+Save and open projects,files,must,yes,no,
+Export project to image and PDF,files,must,yes,no,
+Ladder editor with compact PLC run and watch,plc,should,yes,no,phase 2; generic PLC not Siemens-branded
+Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,no,phase 2
+Variable frequency drive with keypad parameters and faults,drives,should,yes,no,phase 2; generic VFD
+Undo / redo and copy / paste,editor,should,yes,no,
+Grid snap rotate mirror pan and zoom,editor,should,yes,no,
+Starter templates (DOL star-delta time switch safety relays),templates,should,yes,no,gallery examples
+Interlocks and safety-relay behavior,control,should,yes,no,
+English and Spanish UI,i18n,should,yes,no,store listing languages
+Reusable subcircuits,editor,could,yes,no,
+Growing device library packs,library,could,yes,no,store feature: library keeps growing
+Free / Pro gating by device count,licensing,could,yes,no,design own model; not their scheme
+EduVolt brand name and site copy,brand,could,yes,skip,their IP; replica-brand renames anyway
+Device pictorial artwork from their library,assets,could,yes,skip,ToS section 2 claims library copyright
+Manufacturer logos (Siemens Delta Schneider WEG Pilz),assets,could,yes,skip,trademarks; datasheet behavior with generic names
+Their license-server activation scheme,licensing,could,yes,skip,build own licensing
+Reverse engineering or decompiling their app,legal,could,yes,skip,forbidden by ToS and skill rules
+Academy courses platform,scope,could,yes,skip,different product

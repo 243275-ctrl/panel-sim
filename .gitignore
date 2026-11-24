@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Secrets / credentials
+.env
+*.pem
+.netrc
+
+# Build outputs
+node_modules/
+dist/
+out/
+target/
+build/
+__pycache__/
+*.pyc
+
+# Local tool state
+.claude/
