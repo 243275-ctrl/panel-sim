@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>panel-sim — design system check</title>
+<style>
+/* ===== tokens (from tokens.css) ===== */
+:root{
+  --color-bg:#ffffff; --color-canvas:#ececec; --color-surface:#f6f7f9;
+  --color-border:#e3e6ea; --color-border-input:#868e98;
+  --color-text:#14171c; --color-text-muted:#5b6470;
+  --color-accent:#2f5bea; --color-on-accent:#ffffff;
+  --color-chrome:#1b2431; --color-on-chrome:#f5f7fa;
+  --color-danger:#c62f2f; --color-success:#1f7a4d;
+  --color-warning:#b45309; --color-live:#c2410c;
+  --font-sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:10px; --radius-pill:999px;
+  --shadow-card:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.10);
+  --shadow-pop:0 12px 32px rgba(16,24,40,.16);
+  --motion-fast:100ms; --motion-base:180ms; --motion-ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/20px var(--font-sans);color:var(--color-text);background:var(--color-bg);padding:32px}
+h1{font-size:28px;line-height:34px;margin-bottom:4px}
+h2{font-size:16px;line-height:24px;font-weight:600;margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--color-border)}
+.sub{color:var(--color-text-muted);font-size:13px}
+section{max-width:960px}
+/* swatches */
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw div{width:132px;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;font-size:11px}
+.sw i{display:block;height:44px}
+.sw p{padding:6px 8px;background:var(--color-bg)}
+.sw b{display:block;font-family:var(--font-mono);font-weight:500}
+.sw span{color:var(--color-text-muted)}
+/* type */
+.type div{margin:6px 0}
+.txs{font-size:12px;line-height:16px;font-weight:500}
+.tsm{font-size:13px;line-height:18px}
+.tbase{font-size:14px;line-height:20px}
+.tlg{font-size:16px;line-height:24px;font-weight:600}
+.txl{font-size:20px;line-height:26px;font-weight:700}
+.tdisp{font-size:28px;line-height:34px;font-weight:700}
+.mono{font-family:var(--font-mono)}
+/* buttons */
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+button{font:13px/18px var(--font-sans);font-weight:600;border-radius:var(--radius-md);border:1px solid transparent;cursor:pointer;padding:0 14px;height:32px}
+.b-primary{background:var(--color-accent);color:var(--color-on-accent)}
+.b-primary:hover{filter:brightness(1.08)}
+.b-secondary{background:var(--color-bg);border-color:var(--color-border-input);color:var(--color-text)}
+.b-secondary:hover{background:var(--color-surface)}
+.b-ghost{background:transparent;color:var(--color-text)}
+.b-ghost:hover{background:var(--color-surface)}
+.b-danger{background:var(--color-danger);color:#fff}
+.b-sm{height:28px;font-size:12px}
+.b-lg{height:40px;font-size:14px}
+.b-focus{outline:2px solid var(--color-accent);outline-offset:2px}
+.b-dis,.b-dis:disabled{background:var(--color-surface);color:var(--color-text-muted);border-color:var(--color-border);cursor:not-allowed;opacity:.7}
+.b-load{background:var(--color-accent);color:transparent;position:relative}
+.b-load::after{content:"…";position:absolute;inset:0;color:#fff;display:grid;place-items:center}
+/* inputs */
+label.fl{display:block;font-size:12px;font-weight:500;color:var(--color-text-muted);margin-bottom:4px}
+input,select{font:13px/18px var(--font-sans);height:32px;padding:0 10px;border:1px solid var(--color-border-input);border-radius:var(--radius-sm);background:var(--color-bg);color:var(--color-text);width:220px}
+input:focus,select:focus{outline:2px solid var(--color-accent);outline-offset:-1px;border-color:var(--color-accent)}
+input.err{border-color:var(--color-danger)}
+.errmsg{font-size:12px;color:var(--color-danger);margin-top:4px}
+input:disabled{background:var(--color-surface);color:var(--color-text-muted)}
+/* chips & badges */
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:var(--radius-pill);background:var(--color-surface);border:1px solid var(--color-border);font-size:12px;font-weight:500;color:var(--color-text)}
+.chip.on{background:rgba(47,91,234,.1);border-color:var(--color-accent);color:var(--color-accent)}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--radius-pill);font-size:11px;font-weight:600}
+.b-ok{background:rgba(31,122,77,.12);color:var(--color-success)}
+.b-dg{background:rgba(198,47,47,.12);color:var(--color-danger)}
+.b-wr{background:rgba(180,83,9,.12);color:var(--color-warning)}
+.b-ac{background:rgba(47,91,234,.12);color:var(--color-accent)}
+/* mocks */
+.card{border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:16px;background:var(--color-bg)}
+.banner{display:flex;gap:10px;align-items:center;background:rgba(198,47,47,.1);color:var(--color-danger);border:1px solid rgba(198,47,47,.3);border-radius:var(--radius-md);padding:10px 12px;font-size:13px;font-weight:500}
+.banner.warn{background:rgba(180,83,9,.1);color:var(--color-warning);border-color:rgba(180,83,9,.3)}
+.toast{display:inline-flex;gap:12px;align-items:center;background:var(--color-chrome);color:var(--color-on-chrome);border-radius:var(--radius-md);box-shadow:var(--shadow-pop);padding:10px 14px;font-size:13px}
+.toast button{background:transparent;border:1px solid rgba(245,247,250,.4);color:var(--color-on-chrome);height:24px;font-size:12px}
+.dialog{width:360px;border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);overflow:hidden;background:var(--color-bg)}
+.dialog header{padding:12px 16px;border-bottom:1px solid var(--color-border);font-weight:600;font-size:16px}
+.dialog .body{padding:16px;font-size:13px;color:var(--color-text-muted)}
+.dialog footer{padding:12px 16px;border-top:1px solid var(--color-border);display:flex;justify-content:flex-end;gap:8px;background:var(--color-surface)}
+.transport{display:inline-flex;gap:6px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:6px}
+.transport button{width:36px;height:32px;padding:0;display:grid;place-items:center;background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-text);font-size:14px}
+.transport .run{background:var(--color-success);border-color:var(--color-success);color:#fff}
+.palette{display:flex;flex-direction:column;gap:6px;width:200px;border:1px solid var(--color-border);border-radius:var(--radius-md);padding:8px;background:var(--color-bg)}
+.palette .tile{display:flex;gap:8px;align-items:center;border:1px solid var(--color-border);border-radius:var(--radius-md);padding:6px;font-size:12px;background:var(--color-bg)}
+.palette .tile.sel{outline:2px solid var(--color-accent)}
+.palette .tile.lock{opacity:.6}
+.spr{width:34px;height:34px;border-radius:var(--radius-sm);display:grid;place-items:center;font-size:15px;background:var(--color-surface);border:1px solid var(--color-border)}
+.statusbar{display:flex;gap:16px;align-items:center;background:var(--color-surface);border-top:1px solid var(--color-border);padding:4px 12px;font-size:12px;color:var(--color-text-muted);border-radius:0 0 var(--radius-md) var(--radius-md)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot.live{background:var(--color-live);box-shadow:0 0 0 3px rgba(194,65,12,.25)}
+.dot.ok{background:var(--color-success)}
+.canvasmock{background:var(--color-canvas);border:1px solid var(--color-border);border-radius:var(--radius-md);height:180px;position:relative;overflow:hidden}
+.wire{position:absolute;height:2px;background:var(--color-text)}
+.wire.hot{background:var(--color-live);background-image:repeating-linear-gradient(90deg,var(--color-live) 0 8px,rgba(194,65,12,.4) 8px 14px);animation:flow 700ms linear infinite}
+@keyframes flow{to{background-position:14px 0}}
+.devmock{position:absolute;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:10px;padding:4px 6px;box-shadow:var(--shadow-card)}
+.term{position:absolute;width:10px;height:10px;border:2px solid var(--color-text);border-radius:50%;background:var(--color-bg)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:960px}
+.muted{color:var(--color-text-muted);font-size:13px}
+</style>
+</head>
+<body>
+<section>
+  <h1>panel-sim design system</h1>
+  <p class="sub">Design-system check for replica-design · roles measured from <span class="mono">replica/screens/ref-*.jpg</span> · accent is a neutral placeholder (replica-brand swaps values) · contrast: <b>14 pairs, 0 failing AA</b> (exit 0)</p>
+
+  <h2>Colour roles</h2>
+  <div class="sw">
+    <div><i style="background:var(--color-bg)"></i><p><b>bg</b><span>#ffffff</span></p></div>
+    <div><i style="background:var(--color-canvas)"></i><p><b>canvas</b><span>#ececec</span></p></div>
+    <div><i style="background:var(--color-surface)"></i><p><b>surface</b><span>#f6f7f9</span></p></div>
+    <div><i style="background:var(--color-border)"></i><p><b>border</b><span>#e3e6ea</span></p></div>
+    <div><i style="background:var(--color-border-input)"></i><p><b>border-input</b><span>#868e98</span></p></div>
+    <div><i style="background:var(--color-text)"></i><p><b>text</b><span>#14171c</span></p></div>
+    <div><i style="background:var(--color-text-muted)"></i><p><b>text-muted</b><span>#5b6470</span></p></div>
+    <div><i style="background:var(--color-accent)"></i><p><b>accent*</b><span>#2f5bea</span></p></div>
+    <div><i style="background:var(--color-chrome)"></i><p><b>chrome</b><span>#1b2431</span></p></div>
+    <div><i style="background:var(--color-danger)"></i><p><b>danger</b><span>#c62f2f</span></p></div>
+    <div><i style="background:var(--color-success)"></i><p><b>success</b><span>#1f7a4d</span></p></div>
+    <div><i style="background:var(--color-warning)"></i><p><b>warning</b><span>#b45309</span></p></div>
+    <div><i style="background:var(--color-live)"></i><p><b>live</b><span>#c2410c</span></p></div>
+  </div>
+
+  <h2>Type scale (Inter / system)</h2>
+  <div class="type">
+    <div class="tdisp">Display 28/34 · 700</div>
+    <div class="txl">XL 20/26 · 700 — Panel title</div>
+    <div class="tlg">LG 16/24 · 600 — Dialog header</div>
+    <div class="tbase">Base 14/20 · 400 — Body, canvas labels</div>
+    <div class="tsm">SM 13/18 · 400 — Inputs, buttons</div>
+    <div class="txs">XS 12/16 · 500 — Chips, status bar <span class="mono">mono: 1320.0 V · 50.00 Hz</span></div>
+  </div>
+
+  <h2>Button</h2>
+  <div class="row">
+    <button class="b-primary">Run</button>
+    <button class="b-secondary">Cancel</button>
+    <button class="b-ghost">Reset</button>
+    <button class="b-danger">Delete project</button>
+    <button class="b-primary b-focus">Focus-visible</button>
+    <button class="b-primary" disabled style="opacity:.55">Disabled</button>
+    <button class="b-primary b-load">Loading</button>
+  </div>
+  <div class="row">
+    <button class="b-primary b-sm">sm 28</button>
+    <button class="b-primary">md 32</button>
+    <button class="b-primary b-lg">lg 40</button>
+  </div>
+
+  <h2>Inputs, chips, badges</h2>
+  <div class="row" style="align-items:flex-start;gap:24px">
+    <div><label class="fl" for="f1">Motor power</label><input id="f1" value="4.0 kW"></div>
+    <div><label class="fl" for="f2">Search devices</label><input id="f2" placeholder="Search component…"></div>
+    <div><label class="fl" for="f3">Connection (invalid)</label><input id="f3" class="err" value="3-lead"><div class="errmsg">Choose 6, 9 or 12 leads</div></div>
+    <div><label class="fl" for="f4">Disabled</label><input id="f4" disabled value="Read-only"></div>
+  </div>
+  <div class="row">
+    <span class="chip">Protections</span><span class="chip on">Motors</span><span class="chip">Sensors</span>
+    <span class="badge b-ok">Simulating</span><span class="badge b-dg">Overload trip</span>
+    <span class="badge b-wr">Floating net</span><span class="badge b-ac">Pro</span>
+  </div>
+
+  <h2>Feedback: banner · toast · dialog</h2>
+  <div class="grid2">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="banner">⚠ Phase loss detected on L2 — overload relay FR1 tripped</div>
+      <div class="banner warn">⚠ Wire from Q1:2 is not connected to any device</div>
+      <div class="toast">Project saved <button>Undo</button></div>
+    </div>
+    <div class="dialog">
+      <header>Export as PDF</header>
+      <div class="body">Includes the canvas area and the device list. Simulation state is not exported.</div>
+      <footer><button class="b-secondary">Cancel</button><button class="b-primary">Export</button></footer>
+    </div>
+  </div>
+
+  <h2>Simulation: transport · live canvas · status bar</h2>
+  <div class="card">
+    <div class="row" style="margin-top:0">
+      <div class="transport">
+        <button class="run" title="Run">▶</button>
+        <button title="Stop">■</button>
+        <button title="Reset">↺</button>
+      </div>
+      <span class="badge b-ok">Running · t = 1.250 s</span>
+      <span class="muted">fixed timestep 1 ms · sim clock (not wall clock)</span>
+    </div>
+    <div class="canvasmock" style="margin-top:12px">
+      <div class="wire hot" style="left:60px;top:60px;width:220px"></div>
+      <div class="wire" style="left:60px;top:60px;width:2px;height:70px"></div>
+      <div class="wire hot" style="left:60px;top:130px;width:300px"></div>
+      <div class="devmock" style="left:80px;top:42px">KM1 · contactor</div>
+      <div class="devmock" style="left:300px;top:42px">M1 · motor 4 kW</div>
+      <div class="devmock" style="left:150px;top:112px;border-color:var(--color-live)">FR1 · overload</div>
+      <div class="term" style="left:56px;top:56px"></div>
+      <div class="term" style="left:356px;top:126px"></div>
+    </div>
+    <div class="statusbar" style="margin-top:12px">
+      <span><span class="dot live"></span>Sim running</span>
+      <span>Snap: ON</span><span>Zoom: 71%</span>
+      <span>Net L1–L2 · 400 V</span>
+      <span style="margin-left:auto" class="mono">X: 2450, Y: 88</span>
+    </div>
+  </div>
+
+  <h2>Library palette tile</h2>
+  <div class="palette">
+    <div class="tile sel"><span class="spr">🟢</span> Pilot light — green</div>
+    <div class="tile"><span class="spr">🔴</span> Push button, NC</div>
+    <div class="tile"><span class="spr">⚡</span> Overload relay</div>
+    <div class="tile lock"><span class="spr">🎛</span> VFD 2.2 kW <span class="badge b-ac" style="margin-left:auto">Pro</span></div>
+  </div>
+  <p class="sub" style="margin-top:8px">Sprites shown with emoji stand-ins — real tiles use our own SVG pictorial art (Lucide for UI icons; no manufacturer logos). Locked tiles: opacity + badge + tooltip, keyboard focusable.</p>
+</section>
+</body>
+</html>
