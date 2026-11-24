@@ -119,6 +119,10 @@ export function resistanceOf(d: SolDevice): number | null {
     case "motor-1ph":
     case "motor-dc":
       return d.params.r || 200;
+    case "pt100":
+      // standard Pt100 curve: R = 100·(1 + 0.00385·t) — wire it in series
+      // with an ammeter or across a divider to read temperature live
+      return 100 * (1 + 0.00385 * (d.params.t ?? 20));
     case "contactor":
     case "contactor-rev":
     case "relay":

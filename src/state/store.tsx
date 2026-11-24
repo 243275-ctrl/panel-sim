@@ -116,7 +116,7 @@ export interface State {
 }
 
 export type Action =
-  | { t: "start"; example: 0 | 1 | 2 }
+  | { t: "start"; example: 0 | 1 | 2 | 3 | 4 }
   | { t: "tool"; tool: ToolMode }
   | { t: "placeType"; dt: DeviceType }
   | { t: "place"; id: string; x: number; y: number }
@@ -146,7 +146,8 @@ export type Action =
   | { t: "pgDelContact"; id: string; branch: number; idx: number }
   | { t: "pgSetContact"; id: string; branch: number; idx: number; tag?: string; nc?: boolean }
   | { t: "pgSetCoil"; id: string; tag: string }
-  | { t: "pgSetComment"; id: string; text: string };
+  | { t: "pgSetComment"; id: string; text: string }
+  | { t: "pgSetPreset"; id: string; sec: number };
 
 export const uid = (prefix: string) =>
   prefix + Math.random().toString(36).slice(2, 9);
@@ -295,6 +296,82 @@ export function plcDemoProject() {
   return { devices, wires, program };
 }
 
+/** template: stage 1 immediately, stage 2 (motor) after a 3 s on-delay */
+export function sequenceTemplate() {
+  const dev = (
+    id: string,
+    type: DeviceType,
+    name: string,
+    x: number,
+    y: number,
+    params: Record<string, number> = {},
+  ): Device => ({ id, type, name, x, y, params });
+  const devices: Device[] = [
+    dev("V1", "source", "V1", 120, 150, { v: 24 }),
+    dev("PLC1", "plc", "PLC1", 360, 150, {}),
+    dev("S1", "button", "S1", 120, 350, {}),
+    dev("H1", "lamp-amber", "H1", 520, 350, { r: 100 }),
+    dev("KM2", "contactor", "KM2", 640, 350, { grp: 2, r: 1200 }),
+    dev("U1", "ac-source", "U1", 760, 150, { v: 230 }),
+    dev("A2", "aux-no", "A2", 760, 350, { grp: 2 }),
+    dev("M1", "motor", "M1", 880, 350, { connection: 12, r: 200 }),
+  ];
+  const w = (id: string, ad: string, at: number, bd: string, bt: number): Wire => ({
+    id,
+    a: { dev: ad, term: at },
+    b: { dev: bd, term: bt },
+  });
+  const wires: Wire[] = [
+    w("w1", "V1", 1, "PLC1", 0),
+    w("w2", "V1", 0, "PLC1", 1),
+    w("w3", "V1", 1, "S1", 0),
+    w("w4", "S1", 1, "PLC1", 2), // start → I0.0
+    w("w5", "PLC1", 6, "H1", 0), // Q0.0 → amber lamp (stage 1)
+    w("w6", "H1", 1, "V1", 0),
+    w("w7", "PLC1", 7, "KM2", 0), // Q0.1 → contactor (stage 2)
+    w("w8", "KM2", 1, "V1", 0),
+    w("w9", "U1", 1, "A2", 0),
+    w("w10", "A2", 1, "M1", 0),
+    w("w11", "M1", 1, "U1", 0),
+  ];
+  const program: Program = [
+    {
+      id: "r1",
+      branches: [
+        { contacts: [{ tag: "I0.0", nc: false }] },
+        { contacts: [{ tag: "Q0.0", nc: false }] },
+      ],
+      tail: [],
+      coil: "Q0.0",
+      comment: "Stage 1 with seal-in",
+    },
+    { id: "r2", branches: [{ contacts: [{ tag: "Q0.0", nc: false }] }], tail: [], coil: "T0", comment: "on-delay", preset: 3 },
+    { id: "r3", branches: [{ contacts: [{ tag: "T0", nc: false }] }], tail: [], coil: "Q0.1", comment: "Stage 2 after 3 s" },
+  ];
+  return { devices, wires, program };
+}
+
+/** template: Q0.0 flashes a beacon at ~1 Hz via T0 ↔ M0 oscillation */
+export function flasherTemplate() {
+  const devices: Device[] = [
+    { id: "V1", type: "source", name: "V1", x: 160, y: 150, params: { v: 24 } },
+    { id: "PLC1", type: "plc", name: "PLC1", x: 400, y: 150, params: {} },
+    { id: "YL1", type: "beacon", name: "YL1", x: 640, y: 340, params: {} },
+  ];
+  const wires: Wire[] = [
+    { id: "w1", a: { dev: "V1", term: 1 }, b: { dev: "PLC1", term: 0 } },
+    { id: "w2", a: { dev: "V1", term: 0 }, b: { dev: "PLC1", term: 1 } },
+    { id: "w3", a: { dev: "PLC1", term: 6 }, b: { dev: "YL1", term: 0 } },
+    { id: "w4", a: { dev: "YL1", term: 1 }, b: { dev: "V1", term: 0 } },
+  ];
+  const program: Program = [
+    { id: "r1", branches: [{ contacts: [{ tag: "M0", nc: true }] }], tail: [], coil: "T0", comment: "charge while dark", preset: 1 },
+    { id: "r2", branches: [{ contacts: [{ tag: "T0", nc: false }] }], tail: [], coil: "M0", comment: "" },
+    { id: "r3", branches: [{ contacts: [{ tag: "M0", nc: false }] }], tail: [], coil: "Q0.0", comment: "flash output" },
+  ];
+  return { devices, wires, program };
+}
+
 const initial: State = {
   started: false,
   projectName: "Untitled",
@@ -346,6 +423,28 @@ function base(state: State, a: Action): State {
             "PLC demo: open ▤ Program, press Run, then set SQ1 ‘target present’ in Properties — the ladder seals Q0.0, KM1 pulls in and the motor runs.",
         };
       }
+      if (a.example === 3) {
+        const ex = sequenceTemplate();
+        return {
+          ...initial,
+          started: true,
+          projectName: "Template — timed sequence",
+          ...ex,
+          notice:
+            "Sequence template: press Run, hold S1 — lamp H1 lights at once, T0 counts 3 s, then stage 2 pulls KM2 and the motor runs.",
+        };
+      }
+      if (a.example === 4) {
+        const ex = flasherTemplate();
+        return {
+          ...initial,
+          started: true,
+          projectName: "Template — flasher",
+          ...ex,
+          notice:
+            "Flasher template: Run and watch the beacon blink at ~1 Hz (T0 ↔ M0 oscillation).",
+        };
+      }
       return { ...initial, started: true };
     }
     case "tool":
@@ -383,7 +482,9 @@ function base(state: State, a: Action): State {
                             ? { pv: 0, sp: 10 }
                             : type === "level-sensor"
                               ? { lv: 0, sp: 5 }
-                              : {},
+                              : type === "pt100"
+                                ? { t: 20 }
+                                : {},
       };
       return {
         ...state,
@@ -444,7 +545,7 @@ function base(state: State, a: Action): State {
         ...state,
         running: false,
         pressed: [],
-        plc: { ...state.plc, inputs: [false, false, false, false], outputs: [false, false, false, false], mem: state.plc.mem.map(() => false) },
+        plc: emptyIO(),
       };
     case "reset":
       return {
@@ -624,6 +725,13 @@ function base(state: State, a: Action): State {
       return {
         ...state,
         program: state.program.map((r) => (r.id === a.id ? { ...r, coil: a.tag } : r)),
+      };
+    case "pgSetPreset":
+      return {
+        ...state,
+        program: state.program.map((r) =>
+          r.id === a.id ? { ...r, preset: Math.max(0.1, a.sec) } : r,
+        ),
       };
     case "pgSetComment":
       return {

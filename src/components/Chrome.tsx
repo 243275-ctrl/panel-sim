@@ -590,6 +590,27 @@ export function PropertiesPanel() {
               </>
             )}
 
+            {sel.type === "pt100" && (
+              <div className="field">
+                <label htmlFor="tc">Temperature (°C)</label>
+                <input
+                  id="tc"
+                  type="range"
+                  min={0}
+                  max={200}
+                  step={1}
+                  value={sel.params.t ?? 20}
+                  onChange={(e) =>
+                    dispatch({ t: "param", id: sel.id, key: "t", value: Number(e.target.value) })
+                  }
+                />
+                <span className="ro mono">
+                  {(sel.params.t ?? 20).toFixed(0)} °C ·{" "}
+                  {(100 * (1 + 0.00385 * (sel.params.t ?? 20))).toFixed(1)} Ω
+                </span>
+              </div>
+            )}
+
             {/* ---- coil / contact group linking ---- */}
             {["contactor", "contactor-rev", "relay", "aux-no", "aux-nc", "changeover"].includes(
               sel.type,
@@ -658,6 +679,18 @@ export function StartOverlay() {
             onClick={() => dispatch({ t: "start", example: 2 })}
           >
             PLC demo — sensor → ladder → contactor → motor
+          </button>
+          <button
+            className="btn secondary"
+            onClick={() => dispatch({ t: "start", example: 3 })}
+          >
+            Template — timed sequence (T0,3 s)
+          </button>
+          <button
+            className="btn secondary"
+            onClick={() => dispatch({ t: "start", example: 4 })}
+          >
+            Template — flasher (~1 Hz beacon)
           </button>
         </div>
         <p className="note">

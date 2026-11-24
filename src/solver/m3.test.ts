@@ -99,3 +99,56 @@ describe("M3 — PLC demo end-to-end", () => {
     expect(di).toBeGreaterThan(12);
   });
 });
+
+describe("M4 templates load & run", () => {
+  it("sequence template: motor stage arms after 3 s of scans", async () => {
+    const { sequenceTemplate } = await import("../state/store");
+    const { devices, wires, program } = sequenceTemplate();
+    let io = emptyIO();
+    // hold start (electrical: S1 pressed → I0.0 high through the wired loop)
+    io = scanPlc(devices, wires, ["S1"], true, program, io);
+    expect(io.inputs[0]).toBe(true);
+    expect(io.outputs[0]).toBe(true); // stage 1 immediate
+    expect(io.outputs[1]).toBe(false);
+    // release + 20 scans ×150 ms = 3 s
+    io = scanPlc(devices, wires, [], true, program, io);
+    expect(io.outputs[0]).toBe(true); // seal holds
+    for (let i = 0; i < 20; i++) io = scanPlc(devices, wires, [], true, program, io);
+    expect(io.outputs[0]).toBe(true); // sealed
+    expect(io.outputs[1]).toBe(true); // stage 2
+    // electrical chain: contactor pulled, motor spinning
+    const sim = simulate(devices, wires, [], true, { plcOut: io.outputs });
+    expect(sim.energized.has("KM2")).toBe(true);
+    expect(sim.spin.has("M1")).toBe(true);
+  });
+
+  it("flasher template oscillates Q0.0", async () => {
+    const { flasherTemplate } = await import("../state/store");
+    const { devices, wires, program } = flasherTemplate();
+    let io = emptyIO();
+    const seen: boolean[] = [];
+    for (let i = 0; i < 30; i++) {
+      io = scanPlc(devices, wires, [], true, program, io);
+      seen.push(io.outputs[0]);
+    }
+    expect(seen.filter(Boolean).length).toBeGreaterThan(0);
+    expect(seen.filter(Boolean).length).toBeLessThan(30);
+    expect(seen.some((v, i) => i > 0 && v !== seen[i - 1])).toBe(true);
+  });
+
+  it("Pt100 resistance follows the temperature curve", () => {
+    const pt = { id: "TT1", type: "pt100" as const, name: "TT1", params: { t: 100 } };
+    const v1 = { id: "V1", type: "source" as const, name: "V1", params: { v: 24 } };
+    const r = { id: "R1", type: "resistor" as const, name: "R1", params: { r: 100 } };
+    // divider: Pt100 (138.5 Ω @100 °C) with R1 across 24 V
+    const wires = [
+      { id: "w1", a: { dev: "V1", term: 1 }, b: { dev: "TT1", term: 0 } },
+      { id: "w2", a: { dev: "TT1", term: 1 }, b: { dev: "R1", term: 0 } },
+      { id: "w3", a: { dev: "R1", term: 1 }, b: { dev: "V1", term: 0 } },
+    ];
+    const sim = simulate([v1, pt, r], wires, [], true);
+    // total R = 238.5 → I ≈ 0.1006 A; Pt drop ≈ 13.94 V
+    expect(sim.readings.TT1.i).toBeCloseTo(24 / 238.5, 4);
+    expect(Math.abs(sim.readings.TT1.v)).toBeCloseTo(24 * (138.5 / 238.5), 2);
+  });
+});

@@ -5,6 +5,8 @@ import {
   INPUTS,
   MEM,
   OUTPUTS,
+  TIMERS,
+  presetsOf,
   tagState,
   type LContact,
 } from "../solver/ladder";
@@ -32,6 +34,9 @@ function TagSelect({
       </optgroup>
       <optgroup label="Markers">
         {opt(MEM)}
+      </optgroup>
+      <optgroup label="Timers">
+        {opt(TIMERS)}
       </optgroup>
     </select>
   );
@@ -67,8 +72,9 @@ export function LadderEditor() {
   const s = useApp();
   const dispatch = useDispatchApp();
 
+  const presets = presetsOf(s.program);
   const state = (c: LContact) => {
-    const raw = tagState(c.tag, s.plc);
+    const raw = tagState(c.tag, s.plc, presets);
     return c.nc ? !raw : raw;
   };
   const rungOn = (r: { branches: { contacts: LContact[] }[]; tail?: LContact[] }) =>
@@ -116,6 +122,25 @@ export function LadderEditor() {
                       dispatch({ t: "pgSetComment", id: r.id, text: e.target.value })
                     }
                   />
+                  {r.coil.startsWith("T") && (
+                    <label className="preset-box">
+                      on-delay
+                      <input
+                        type="number"
+                        min={0.1}
+                        step={0.5}
+                        value={r.preset ?? 3}
+                        onChange={(e) =>
+                          dispatch({
+                            t: "pgSetPreset",
+                            id: r.id,
+                            sec: Number(e.target.value),
+                          })
+                        }
+                      />
+                      s
+                    </label>
+                  )}
                   <button
                     className="c-x"
                     title="Delete rung"

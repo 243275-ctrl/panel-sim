@@ -15,12 +15,12 @@ Multimeter (voltage and current),instruments,must,yes,yes,free in our build — 
 Clamp meter,instruments,must,yes,no,pro tier
 Save and open projects,files,must,yes,yes,M1: .psim JSON with fail-closed validation; download + file open (native dialogs on desktop shell)
 Export project to image and PDF,files,must,yes,no,
-Ladder editor with compact PLC run and watch,plc,should,yes,yes,"M3: full ladder editor (branches, series tail, coils), live scan every 150 ms, I/O LEDs"
-Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,partial,M3: discrete sensor signals live (prox/photo/pressure/level as switches); analog scaling + Pt100 in M4
+Ladder editor with compact PLC run and watch,plc,should,yes,yes,"M3+M4: rungs with branches/tail/coils, T0–T3 on-delay timers with presets, live TRUE highlighting"
+Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,partial,Pt100 live on the standard curve + meters; pressure/level give discrete setpoint signals; 4–20 mA loops later
 Variable frequency drive with keypad parameters and faults,drives,should,yes,yes,"M3: keypad panel (run/stop, fwd/rev, 0–120 Hz), remote DI1 command, V/f output to motor"
 Undo / redo and copy / paste,editor,should,yes,partial,M1: undo/redo (Ctrl+Z/Y) done; copy/paste pending
 Grid snap rotate mirror pan and zoom,editor,should,yes,yes,"M1: 20px snap, R rotate, M mirror, drag pan, scroll zoom"
-Starter templates (DOL star-delta time switch safety relays),templates,should,yes,partial,PLC demo + pilot-light examples ship; star-delta/time-switch templates M4
+Starter templates (DOL star-delta time switch safety relays),templates,should,yes,partial,"4 built-in examples (pilot, PLC demo, timed sequence, flasher); star-delta/time-switch need multi-terminal 3φ (roadmap)"
 Interlocks and safety-relay behavior,control,should,yes,partial,NC-linked contacts give basic interlock; safety relay block M4
 English and Spanish UI,i18n,should,yes,no,store listing languages
 Reusable subcircuits,editor,could,yes,no,

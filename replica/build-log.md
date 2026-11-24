@@ -182,3 +182,21 @@ branches), then M3 motors + control.
   tsc clean, vite build OK, live dev server 200s. Honest limits: no timers/
   analog scaling/safety blocks yet (M4), VFD modelled as V/f source (no fault
   diagnostics), star-delta templates pending.
+
+## M4 — Timers, templates, Pt100 (2026-11-24)
+- **TON timers T0–T3** in the ladder: preset on the rung (seconds, editor field
+  appears when the coil is a timer), accumulated in `PlcIO.timers` once per scan
+  (dt = 150 ms live, injectable in tests), instant reset when the rung drops.
+  Timer contacts resolve against the owning rung's preset; second eval pass no
+  longer double-counts time.
+- **Templates** (start screen): **timed sequence** (stage 1 lamp + seal-in → T0
+  3 s → stage 2 contactor → motor) and **flasher** (T0 ↔ M0 oscillation driving
+  Q0.0 beacon at ~1 Hz). Both wired end-to-end and pinned by integration tests.
+- **Pt100 modelled** on the standard curve R = 100·(1+0.00385·t) with a temp
+  slider; series/divider wiring gives live readings (tests: 138.5 Ω @100 °C).
+- Stop now clears timer accumulators via fresh `emptyIO()`; `.psim` unchanged
+  (program/presets already persisted; runtime timer state is not).
+- Verified: **vitest 46/46** (7 files), tsc clean, vite build OK, live server 200s.
+- Honest limits kept: star-delta needs multi-terminal 3-phase hardware (not
+  faked), 4–20 mA full loops & safety relay blocks remain roadmap, no VFD fault
+  diagnostics.

@@ -105,6 +105,7 @@ const MODELLED: DeviceType[] = [
   "photo-sensor",
   "pressure-sensor",
   "level-sensor",
+  "pt100",
   "plc",
   "terminal-block",
   "junction-box",
@@ -307,6 +308,7 @@ export function scanPlc(
   running: boolean,
   program: Program,
   prev: PlcIO,
+  dtMs = 150,
 ): PlcIO {
   if (!running) return prev;
   const sim = simulate(devices, wires, pressed, true, { plcOut: prev.outputs });
@@ -318,12 +320,18 @@ export function scanPlc(
       for (let i = 0; i < 4; i++)
         inputs[i] = (tv[2 + i] ?? 0) - (tv[1] ?? 0) > 12;
   }
-  const base: PlcIO = { inputs, outputs: prev.outputs, mem: prev.mem, scan: prev.scan };
+  const base: PlcIO = {
+    inputs,
+    outputs: prev.outputs,
+    mem: prev.mem,
+    timers: [...(prev.timers ?? [0, 0, 0, 0])],
+    scan: prev.scan,
+  };
   if (program.length === 0 || !plc) {
     // STOP mode: outputs de-energise
     return { ...base, outputs: [false, false, false, false] };
   }
-  return evalLadder(program, base);
+  return evalLadder(program, base, dtMs);
 }
 
 /** default EMF re-exported for labels/UI */
