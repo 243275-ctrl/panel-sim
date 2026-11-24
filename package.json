@@ -1,6 +1,6 @@
 {
   "name": "panel-sim",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Windows desktop industrial electrical panel simulator — clean-room rebuild",
   "type": "module",
@@ -18,14 +18,23 @@
   "build": {
     "appId": "com.panelsim.desktop",
     "productName": "PanelSim",
-    "directories": { "output": "release" },
+    "directories": {
+      "output": "release"
+    },
     "files": [
       "dist/**/*",
       "electron/main.cjs",
       "electron/preload.cjs"
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "build/icon.ico"
     },
     "nsis": {
