@@ -1,6 +1,6 @@
-// Device catalog — our own names, categories and metadata (no manufacturer
-// names, no copied artwork). `sim` marks what the solver understands today;
-// the rest are editor-ready and light up as milestones land (M2/M3).
+// Device catalog — our own names, categories and artwork metadata.
+// Covers every public category of the reference product; all parts free.
+// `sim` marks what the solver understands today (grows with M2/M3/M4).
 import type { DeviceType } from "../state/store";
 
 export interface LibItem {
@@ -10,47 +10,104 @@ export interface LibItem {
   category: string;
   prefix: string;
   sim: boolean;
+  /** terminal labels shown in the properties panel (term 0, term 1) */
+  terms: [string, string];
 }
 
 export const LIBRARY: LibItem[] = [
-  // Power
-  { type: "source", label: "DC source", meta: "24 V control supply", category: "Power", prefix: "V", sim: true },
-  { type: "ac-source", label: "AC source", meta: "single-phase supply · M2", category: "Power", prefix: "U", sim: false },
-  { type: "ground", label: "Ground", meta: "reference node · M2", category: "Power", prefix: "PE", sim: false },
-  // Controls
-  { type: "button", label: "Push button, NO", meta: "momentary, opens on release", category: "Controls", prefix: "S", sim: true },
-  { type: "button-nc", label: "Push button, NC", meta: "stop / e-stop contact · M3", category: "Controls", prefix: "S", sim: false },
-  { type: "selector", label: "Selector switch", meta: "hand/auto · M3", category: "Controls", prefix: "SA", sim: false },
-  // Indicators
-  { type: "lamp", label: "Pilot light", meta: "24 V indicator", category: "Indicators", prefix: "H", sim: true },
-  // Passives
-  { type: "resistor", label: "Resistor", meta: "load / divider", category: "Passives", prefix: "R", sim: true },
-  { type: "capacitor", label: "Capacitor", meta: "filter · M2", category: "Passives", prefix: "C", sim: false },
-  { type: "inductor", label: "Inductor", meta: "choke · M2", category: "Passives", prefix: "L", sim: false },
-  // Protection
-  { type: "fuse", label: "Fuse", meta: "overcurrent · M4", category: "Protection", prefix: "FU", sim: false },
-  { type: "breaker", label: "Circuit breaker", meta: "miniature breaker · M4", category: "Protection", prefix: "QF", sim: false },
-  { type: "overload", label: "Overload relay", meta: "motor protection · M4", category: "Protection", prefix: "FR", sim: false },
-  // Switching
-  { type: "contactor", label: "Contactor", meta: "3 main NO contacts · M3", category: "Switching", prefix: "KM", sim: false },
-  // Motors
-  { type: "motor", label: "Three-phase motor", meta: "6/9/12-lead · M3", category: "Motors", prefix: "M", sim: false },
+  // ---- Power ----
+  { type: "source", label: "DC source", meta: "24 V control supply", category: "Power", prefix: "V", sim: true, terms: ["+", "−"] },
+  { type: "ac-source", label: "AC source", meta: "single-phase supply", category: "Power", prefix: "U", sim: false, terms: ["L", "N"] },
+  { type: "ground", label: "Ground", meta: "PE reference", category: "Power", prefix: "PE", sim: false, terms: ["PE", "—"] },
+  { type: "transformer-1p", label: "Transformer 1-phase", meta: "control transformer", category: "Power", prefix: "TC", sim: false, terms: ["H1", "H2"] },
+  { type: "transformer-3p", label: "Transformer 3-phase", meta: "power transformer", category: "Power", prefix: "TM", sim: false, terms: ["H1", "H2"] },
+  { type: "battery", label: "Battery", meta: "DC backup", category: "Power", prefix: "BT", sim: false, terms: ["+", "−"] },
+  { type: "generator", label: "Generator set", meta: "genset", category: "Power", prefix: "GEN", sim: false, terms: ["L1", "L2"] },
+  // ---- Controls ----
+  { type: "button", label: "Push button, NO", meta: "momentary, starts", category: "Controls", prefix: "S", sim: true, terms: ["1", "2"] },
+  { type: "button-nc", label: "Push button, NC", meta: "momentary, stops", category: "Controls", prefix: "S", sim: true, terms: ["1", "2"] },
+  { type: "estop", label: "Emergency stop", meta: "mushroom head, NC", category: "Controls", prefix: "SB", sim: false, terms: ["11", "12"] },
+  { type: "selector", label: "Selector switch", meta: "hand / off / auto", category: "Controls", prefix: "SA", sim: false, terms: ["13", "14"] },
+  { type: "switch-2way", label: "Two-way switch", meta: "lighting changeover", category: "Controls", prefix: "SW", sim: false, terms: ["1", "2"] },
+  { type: "keyswitch", label: "Key switch", meta: "locked mode select", category: "Controls", prefix: "SK", sim: false, terms: ["1", "2"] },
+  // ---- Indicators ----
+  { type: "lamp", label: "Pilot light, green", meta: "run indication", category: "Indicators", prefix: "H", sim: true, terms: ["X1", "X2"] },
+  { type: "lamp-amber", label: "Pilot light, amber", meta: "warning indication", category: "Indicators", prefix: "H", sim: true, terms: ["X1", "X2"] },
+  { type: "buzzer", label: "Buzzer", meta: "audible alarm", category: "Indicators", prefix: "BZ", sim: false, terms: ["A1", "A2"] },
+  { type: "beacon", label: "Stack beacon", meta: "tower light", category: "Indicators", prefix: "YL", sim: false, terms: ["A1", "A2"] },
+  // ---- Switching ----
+  { type: "contactor", label: "Contactor", meta: "3 main NO contacts", category: "Switching", prefix: "KM", sim: false, terms: ["1", "2"] },
+  { type: "contactor-rev", label: "Reversing contactor", meta: "pair for motor reverse", category: "Switching", prefix: "KMR", sim: false, terms: ["1", "2"] },
+  { type: "relay", label: "Control relay", meta: "general purpose", category: "Switching", prefix: "KA", sim: false, terms: ["A1", "A2"] },
+  { type: "aux-no", label: "Aux contact, NO", meta: "mirror contact", category: "Switching", prefix: "KM", sim: false, terms: ["13", "14"] },
+  { type: "aux-nc", label: "Aux contact, NC", meta: "mirror contact", category: "Switching", prefix: "KM", sim: false, terms: ["21", "22"] },
+  { type: "changeover", label: "Changeover contact", meta: "SPDT transfer", category: "Switching", prefix: "KA", sim: false, terms: ["C", "NO"] },
+  // ---- Protection ----
+  { type: "fuse", label: "Fuse", meta: "cylinder cartridge", category: "Protection", prefix: "FU", sim: false, terms: ["1", "2"] },
+  { type: "breaker-1p", label: "Breaker 1P", meta: "miniature breaker", category: "Protection", prefix: "QF", sim: false, terms: ["1", "2"] },
+  { type: "breaker-3p", label: "Breaker 3P", meta: "three-pole MCB", category: "Protection", prefix: "QF", sim: false, terms: ["1", "2"] },
+  { type: "mccb", label: "Breaker MCCB", meta: "molded case, adjustable", category: "Protection", prefix: "QF", sim: false, terms: ["1", "2"] },
+  { type: "overload", label: "Overload relay", meta: "motor protection", category: "Protection", prefix: "FR", sim: false, terms: ["95", "96"] },
+  { type: "surge", label: "Surge protector", meta: "SPD type 2", category: "Protection", prefix: "FSP", sim: false, terms: ["L", "PE"] },
+  { type: "rccb", label: "Residual current device", meta: "30 mA RCCB", category: "Protection", prefix: "QF", sim: false, terms: ["1", "2"] },
+  // ---- Passives ----
+  { type: "resistor", label: "Resistor", meta: "load / divider", category: "Passives", prefix: "R", sim: true, terms: ["1", "2"] },
+  { type: "capacitor", label: "Capacitor", meta: "filter / factor", category: "Passives", prefix: "C", sim: false, terms: ["1", "2"] },
+  { type: "inductor", label: "Inductor", meta: "choke", category: "Passives", prefix: "L", sim: false, terms: ["1", "2"] },
+  { type: "potentiometer", label: "Potentiometer", meta: "adjustable divider", category: "Passives", prefix: "RV", sim: false, terms: ["1", "2"] },
+  { type: "thermistor", label: "Thermistor", meta: "NTC inrush guard", category: "Passives", prefix: "PTC", sim: false, terms: ["1", "2"] },
+  // ---- Motors ----
+  { type: "motor", label: "Motor, 3-phase", meta: "6/9/12-lead induction", category: "Motors", prefix: "M", sim: false, terms: ["U1", "W1"] },
+  { type: "motor-1ph", label: "Motor, 1-phase", meta: "with capacitor", category: "Motors", prefix: "M", sim: false, terms: ["U", "Z"] },
+  { type: "motor-dc", label: "Motor, DC", meta: "shunt wound", category: "Motors", prefix: "MD", sim: false, terms: ["+", "−"] },
+  // ---- Drives ----
+  { type: "vfd", label: "Frequency inverter", meta: "VFD with keypad", category: "Drives", prefix: "U", sim: false, terms: ["R", "S"] },
+  { type: "servo-drive", label: "Servo drive", meta: "motion axis", category: "Drives", prefix: "SV", sim: false, terms: ["L1", "L2"] },
+  // ---- Instruments ----
+  { type: "multimeter", label: "Multimeter", meta: "V / A / Ω", category: "Instruments", prefix: "TQ", sim: false, terms: ["COM", "VΩ"] },
+  { type: "clamp", label: "Clamp meter", meta: "non-contact current", category: "Instruments", prefix: "TQ", sim: false, terms: ["IN", "OUT"] },
+  { type: "voltmeter", label: "Voltmeter", meta: "panel mount", category: "Instruments", prefix: "PV", sim: false, terms: ["+", "−"] },
+  { type: "ammeter", label: "Ammeter", meta: "panel mount", category: "Instruments", prefix: "PA", sim: false, terms: ["+", "−"] },
+  // ---- Sensors ----
+  { type: "pt100", label: "Temperature probe Pt100", meta: "RTD with transmitter", category: "Sensors", prefix: "TT", sim: false, terms: ["+", "−"] },
+  { type: "pressure-sensor", label: "Pressure sensor", meta: "4–20 mA", category: "Sensors", prefix: "PT", sim: false, terms: ["+", "−"] },
+  { type: "proximity-sensor", label: "Proximity switch", meta: "inductive NO", category: "Sensors", prefix: "SQ", sim: false, terms: ["BN", "BU"] },
+  { type: "photo-sensor", label: "Photoelectric sensor", meta: "through-beam", category: "Sensors", prefix: "B", sim: false, terms: ["BN", "BU"] },
+  { type: "level-sensor", label: "Level switch", meta: "float type", category: "Sensors", prefix: "LG", sim: false, terms: ["1", "2"] },
+  // ---- Automation ----
+  { type: "plc", label: "Compact PLC", meta: "ladder controller", category: "Automation", prefix: "PLC", sim: false, terms: ["L", "N"] },
+  { type: "plc-expansion", label: "PLC expansion", meta: "I/O module", category: "Automation", prefix: "EX", sim: false, terms: ["L", "N"] },
+  { type: "analog-module", label: "Analog module", meta: "0–10 V / 4–20 mA", category: "Automation", prefix: "AM", sim: false, terms: ["+", "−"] },
+  // ---- Connection ----
+  { type: "terminal-block", label: "Terminal block", meta: "feed-through", category: "Connection", prefix: "XT", sim: false, terms: ["1", "2"] },
+  { type: "junction-box", label: "Junction box", meta: "4-way connection", category: "Connection", prefix: "JX", sim: false, terms: ["1", "2"] },
+  { type: "connector", label: "Plug connector", meta: "industrial plug", category: "Connection", prefix: "XS", sim: false, terms: ["L", "N"] },
 ];
 
 export const CATEGORIES = [
   "Power",
   "Controls",
   "Indicators",
-  "Passives",
-  "Protection",
   "Switching",
+  "Protection",
+  "Passives",
   "Motors",
+  "Drives",
+  "Instruments",
+  "Sensors",
+  "Automation",
+  "Connection",
 ];
 
-export const TYPE_META: Record<DeviceType, { short: string; prefix: string }> =
+const META: Record<string, { short: string; prefix: string; terms: [string, string] }> =
   Object.fromEntries(
-    LIBRARY.map((l) => [l.type, { short: l.label.split(",")[0], prefix: l.prefix }]),
-  ) as Record<DeviceType, { short: string; prefix: string }>;
+    LIBRARY.map((l) => [
+      l.type,
+      { short: l.label.split(",")[0], prefix: l.prefix, terms: l.terms },
+    ]),
+  );
+
+export const TYPE_META: Record<string, { short: string; prefix: string; terms: [string, string] }> = META;
 
 export function matches(item: LibItem, q: string): boolean {
   if (!q) return true;

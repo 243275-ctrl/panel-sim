@@ -101,3 +101,22 @@ branches), then M3 motors + control.
 - Icon: `build/icon.ico` drawn with PIL (our own art, chrome + live bolt).
 - `vite base: "./"` for file:// loading; CSP meta removed (Electron
   webPreferences provide isolation: contextIsolation + sandbox).
+
+## M1b — Visual parity & complete parts library (2026-11-24)
+- **All 55 device types** wired through store/psim/solver/canvas/chrome from a single
+  `src/data/library.ts` registry (12 categories: power, control, indicators, switching,
+  protection, passives, motors, drives, instruments, sensors, automation, connection).
+  Every type is free forever — no tiers, no locked parts (user directive).
+- **Own pictorial artwork** `src/art/Pictorial.tsx`: 55 parametric SVG drawings
+  (contactor with screws, breaker with toggle + C16 marking, VFD with LCD + keypad,
+  motor with fins, e-stop mushroom, pilot lights with glow, DIN-mounted PLC…).
+  Wire tabs share a strict (±30, 0) contract with the canvas. No asset from any
+  third-party product was copied (ToS §2 of the target product forbids it; we draw our own).
+- **Properties → Terminals list**: per-device rows (number, semantic label from the
+  library registry, connected end or open) with the target's green connected styling.
+- **Panel board backdrop**: generic grey enclosure + two screwed DIN rails behind the
+  workspace — matches the pictorial look without copying their art.
+- Solver: `lamp-amber` lights like `lamp`; `button-nc` conducts unless held;
+  unmodelled-part faults only fire for devices that are actually wired.
+- Verified: tsc clean · vitest **15/15** · vite build OK. Multi-terminal devices
+  (breakers 3p+, PLC I/O) still use the 2-terminal wiring model until M3.

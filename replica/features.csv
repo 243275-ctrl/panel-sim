@@ -1,6 +1,6 @@
 feature,area,priority,original,clone,notes
 Place devices and wire terminal-to-terminal,editor,must,yes,yes,M0 canvas: select/wire tools + snap grid
-Device library with pictorial devices (45 free / 117 pro),library,must,yes,partial,"M1: 15 types, categories + search, own schematic symbols; remaining types + full pictorial art next"
+Device library with pictorial devices (45 free / 117 pro),library,must,yes,yes,"M1b: 55 types across all 12 categories (free=45, ours 55 incl. extras), own pictorial SVGs, categories + search, terminal list panel, DIN-rail board backdrop"
 Electrical simulation: compute voltages and currents across the circuit,simulation,must,yes,no,
 Run / stop / reset simulation transport,simulation,must,yes,yes,M0 single-loop solver; full nodal analysis in M2
 Three-phase motor with full nameplate (6/9/12-lead),motors,must,yes,no,connection selectable

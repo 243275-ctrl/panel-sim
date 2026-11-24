@@ -78,10 +78,23 @@ export function simulate(
   if (sources.length > 1)
     faults.push("Multiple sources are not supported yet (M2)");
 
-  // editor-ready types whose simulation model lands in M2/M3/M4
-  const SIM_TYPES: DeviceType[] = ["source", "button", "lamp", "resistor"];
+  // editor-ready types whose simulation model lands in M2/M3/M4 —
+  // only complain about unmodelled parts that are actually wired in
+  const SIM_TYPES: DeviceType[] = [
+    "source",
+    "button",
+    "button-nc",
+    "lamp",
+    "lamp-amber",
+    "resistor",
+  ];
+  const wired = new Set<string>();
+  for (const w of wires) {
+    wired.add(w.a.dev);
+    wired.add(w.b.dev);
+  }
   for (const d of devices)
-    if (!SIM_TYPES.includes(d.type))
+    if (!SIM_TYPES.includes(d.type) && wired.has(d.id))
       faults.push(`${d.name}: simulation model arrives in a later milestone`);
 
   const uf = new Union();
@@ -94,10 +107,13 @@ export function simulate(
   // A source does NOT bridge its own terminals: the loop must return
   // through the rest of the circuit, otherwise every source reads "closed".
   // Loads that conduct: lamps and resistors (both carry a resistance).
+  // NO buttons close while held; NC buttons conduct unless held.
   const passable = (d: SolDevice) =>
     d.type === "lamp" ||
+    d.type === "lamp-amber" ||
     d.type === "resistor" ||
-    (d.type === "button" && running && pressed.includes(d.id));
+    (d.type === "button" && running && pressed.includes(d.id)) ||
+    (d.type === "button-nc" && running && !pressed.includes(d.id));
   for (const d of devices)
     if (passable(d)) uf.union(termKey(d.id, 0), termKey(d.id, 1));
 
@@ -109,7 +125,9 @@ export function simulate(
     if (closed) {
       const loads = devices.filter(
         (d) =>
-          (d.type === "lamp" || d.type === "resistor") &&
+          (d.type === "lamp" ||
+            d.type === "lamp-amber" ||
+            d.type === "resistor") &&
           uf.same(termKey(d.id, 0), termKey(source.id, 0)),
       );
       const totalR = loads.reduce((sum, l) => sum + (l.params.r || 100), 0);
@@ -118,7 +136,8 @@ export function simulate(
         closed = false;
       } else {
         current = (source.params.v || 24) / totalR;
-        for (const l of loads) if (l.type === "lamp") lit.add(l.id);
+        for (const l of loads)
+          if (l.type === "lamp" || l.type === "lamp-amber") lit.add(l.id);
         const loopRoot = uf.find(termKey(source.id, 0));
         for (const w of wires)
           if (

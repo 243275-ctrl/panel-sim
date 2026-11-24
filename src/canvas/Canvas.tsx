@@ -4,9 +4,9 @@ import {
   useDispatchApp,
   useApp,
   type Device,
-  type DeviceType,
 } from "../state/store";
 import { TYPE_META } from "../data/library";
+import { DeviceArt } from "../art/Pictorial";
 import { simulate } from "../solver/solver";
 
 const SNAP = 20;
@@ -250,6 +250,23 @@ export function Canvas() {
             fill="url(#gridMajor)"
           />
 
+          {/* panel board backdrop (our own generic enclosure + DIN rails) */}
+          <g pointerEvents="none">
+            <rect x={60} y={80} width={840} height={340} rx={10} fill="#e9ebee" stroke="#b9c0c7" strokeWidth="3" />
+            <rect x={72} y={92} width={816} height={316} rx={6} fill="none" stroke="#f5f6f8" strokeWidth="2" />
+            {[240, 350].map((ry) => (
+              <g key={ry}>
+                <rect x={90} y={ry - 6} width={780} height={12} rx={2} fill="#c8ced4" stroke="#8a939c" strokeWidth="1.4" />
+                <line x1={94} y1={ry - 3} x2={866} y2={ry - 3} stroke="#eef0f2" strokeWidth="1.6" />
+                <ScrewDot x={100} y={ry} />
+                <ScrewDot x={860} y={ry} />
+              </g>
+            ))}
+            <text x={78} y={410} fontSize={11} fill="#8a939c" fontWeight="600">
+              DIN rail panel
+            </text>
+          </g>
+
           {/* wires */}
           {s.wires.map((w) => {
             const da = s.devices.find((d) => d.id === w.a.dev);
@@ -322,14 +339,12 @@ export function Canvas() {
           {s.tool === "place" && s.placeType && mouse && (
             <g
               transform={`translate(${snap(mouse.x)} ${snap(mouse.y)})`}
-              opacity="0.5"
+              opacity="0.55"
               pointerEvents="none"
             >
-              <g transform="rotate(0)">
-                <SymbolArt type={s.placeType} />
-              </g>
-              <text className="dev-label" y={40} textAnchor="middle">
-                {PLACE_LABEL[s.placeType]}
+              <DeviceArt type={s.placeType} />
+              <text className="dev-label" y={44} textAnchor="middle">
+                {TYPE_META[s.placeType]?.short ?? s.placeType}
               </text>
             </g>
           )}
@@ -342,28 +357,19 @@ export function Canvas() {
   );
 }
 
-const PLACE_LABEL: Record<DeviceType, string> = {
-  source: "DC source",
-  "ac-source": "AC source",
-  ground: "Ground",
-  button: "Push button NO",
-  "button-nc": "Push button NC",
-  selector: "Selector switch",
-  lamp: "Pilot light",
-  resistor: "Resistor",
-  capacitor: "Capacitor",
-  inductor: "Inductor",
-  fuse: "Fuse",
-  breaker: "Circuit breaker",
-  overload: "Overload relay",
-  contactor: "Contactor",
-  motor: "Three-phase motor",
-};
+function ScrewDot({ x, y }: { x: number; y: number }) {
+  return (
+    <g>
+      <circle cx={x} cy={y} r={3.4} fill="#aab4bd" stroke="#3d4852" strokeWidth="1.1" />
+      <line x1={x - 2} y1={y} x2={x + 2} y2={y} stroke="#3d4852" strokeWidth="1.2" />
+    </g>
+  );
+}
 
 function deviceLabel(d: Device): string {
-  const short = TYPE_META[d.type].short.toLowerCase();
+  const short = (TYPE_META[d.type]?.short ?? d.type).toLowerCase();
   if (d.type === "source") return `${d.name} · ${d.params.v ?? 24} V`;
-  if (d.type === "resistor" || d.type === "lamp")
+  if (d.type === "resistor" || d.type === "lamp" || d.type === "lamp-amber")
     return `${d.name} · ${d.params.r ?? 100} Ω`;
   return `${d.name} · ${short}`;
 }
@@ -400,7 +406,7 @@ function DeviceG(props: {
         />
       )}
       <g transform={`rotate(${rot})${d.flip ? " scale(-1 1)" : ""}`}>
-        <SymbolArt type={d.type} lit={lit} />
+        <DeviceArt type={d.type} lit={lit} />
       </g>
       <text className="dev-label" y={44} textAnchor="middle">
         {deviceLabel(d)}
@@ -429,183 +435,4 @@ function DeviceG(props: {
       })}
     </g>
   );
-}
-
-/** Own schematic artwork — drawn fresh, no external assets. */
-function SymbolArt({ type, lit }: { type: DeviceType; lit?: boolean }) {
-  switch (type) {
-    case "source":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-10} y2={0} className="wire" />
-          <line x1={10} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <line x1={-10} y1={-16} x2={-10} y2={16} className="sym" strokeWidth="2.5" />
-          <line x1={10} y1={-8} x2={10} y2={8} className="sym" strokeWidth="5" />
-        </g>
-      );
-    case "ac-source":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-16} y2={0} className="wire" />
-          <line x1={16} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle r={16} className="lamp" />
-          <path
-            d="M -9 0 Q -4.5 -9 0 0 Q 4.5 9 9 0"
-            className="sym"
-            strokeWidth="2"
-          />
-        </g>
-      );
-    case "ground":
-      return (
-        <g>
-          <line x1={0} y1={-24} x2={0} y2={0} className="wire" />
-          <line x1={-16} y1={0} x2={16} y2={0} className="sym" strokeWidth="2.5" />
-          <line x1={-10} y1={7} x2={10} y2={7} className="sym" strokeWidth="2.5" />
-          <line x1={-4} y1={14} x2={4} y2={14} className="sym" strokeWidth="2.5" />
-        </g>
-      );
-    case "button":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-12} y2={0} className="wire" />
-          <line x1={12} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle cx={-12} cy={0} r={3} className="sym-fill" />
-          <circle cx={12} cy={0} r={3} className="sym-fill" />
-          <line x1={-12} y1={0} x2={12} y2={-14} className="sym" strokeWidth="2.5" />
-          <line x1={0} y1={-14} x2={0} y2={-24} className="sym" strokeWidth="2.5" />
-          <rect x={-8} y={-30} width={16} height={7} rx={3} className="sym" strokeWidth="2" />
-        </g>
-      );
-    case "button-nc":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-12} y2={0} className="wire" />
-          <line x1={12} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle cx={-12} cy={0} r={3} className="sym-fill" />
-          <circle cx={12} cy={0} r={3} className="sym-fill" />
-          <line x1={-14} y1={-4} x2={14} y2={-10} className="sym" strokeWidth="2.5" />
-          <line x1={0} y1={-10} x2={0} y2={-22} className="sym" strokeWidth="2.5" />
-          <rect x={-8} y={-28} width={16} height={7} rx={3} className="sym" strokeWidth="2" />
-        </g>
-      );
-    case "selector":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-14} y2={0} className="wire" />
-          <line x1={14} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle r={14} className="lamp" />
-          <line x1={0} y1={0} x2={9} y2={-9} className="sym" strokeWidth="2.5" />
-          <circle r={2.5} className="sym-fill" />
-        </g>
-      );
-    case "lamp":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-16} y2={0} className="wire" />
-          <line x1={16} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle r={16} className={`lamp ${lit ? "on" : ""}`} />
-          <line x1={-8} y1={-8} x2={8} y2={8} className="sym" strokeWidth="2" />
-          <line x1={-8} y1={8} x2={8} y2={-8} className="sym" strokeWidth="2" />
-          {lit && (
-            <g className="rays">
-              <line x1={0} y1={-24} x2={0} y2={-30} className="sym" strokeWidth="2" />
-              <line x1={17} y1={-17} x2={22} y2={-22} className="sym" strokeWidth="2" />
-              <line x1={24} y1={0} x2={30} y2={0} className="sym" strokeWidth="2" />
-              <line x1={-17} y1={-17} x2={-22} y2={-22} className="sym" strokeWidth="2" />
-              <line x1={-24} y1={0} x2={-30} y2={0} className="sym" strokeWidth="2" />
-            </g>
-          )}
-        </g>
-      );
-    case "resistor":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-20} y2={0} className="wire" />
-          <line x1={20} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <path
-            d="M -20 0 L -16 -9 L -8 9 L 0 -9 L 8 9 L 16 -9 L 20 0"
-            className="sym"
-            strokeWidth="2.5"
-          />
-        </g>
-      );
-    case "capacitor":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-6} y2={0} className="wire" />
-          <line x1={6} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <line x1={-6} y1={-16} x2={-6} y2={16} className="sym" strokeWidth="3" />
-          <line x1={6} y1={-16} x2={6} y2={16} className="sym" strokeWidth="3" />
-        </g>
-      );
-    case "inductor":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-18} y2={0} className="wire" />
-          <line x1={18} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <path
-            d="M -18 0 A 6 6 0 0 1 -6 0 A 6 6 0 0 1 6 0 A 6 6 0 0 1 18 0"
-            className="sym"
-            strokeWidth="2.5"
-          />
-        </g>
-      );
-    case "fuse":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-16} y2={0} className="wire" />
-          <line x1={16} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <rect x={-16} y={-9} width={32} height={18} rx={3} className="sym" strokeWidth="2" />
-          <line x1={-16} y1={0} x2={16} y2={0} className="sym" strokeWidth="2" />
-        </g>
-      );
-    case "breaker":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-12} y2={0} className="wire" />
-          <line x1={12} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle cx={-12} cy={0} r={3} className="sym-fill" />
-          <circle cx={12} cy={0} r={3} className="sym-fill" />
-          <line x1={-12} y1={0} x2={10} y2={-13} className="sym" strokeWidth="2.5" />
-          <path d="M -4 -14 Q 0 -20 5 -14" className="sym" strokeWidth="2" />
-        </g>
-      );
-    case "overload":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-22} y2={0} className="wire" />
-          <line x1={22} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <rect x={-22} y={-12} width={44} height={24} rx={4} className="sym" strokeWidth="2" />
-          <path
-            d="M -16 6 Q -10 -8 -4 6 Q 2 -8 8 6 Q 12 -4 16 0"
-            className="sym"
-            strokeWidth="2"
-          />
-        </g>
-      );
-    case "contactor":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-24} y2={0} className="wire" />
-          <line x1={24} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle cx={-16} cy={0} r={3} className="sym-fill" />
-          <circle cx={16} cy={0} r={3} className="sym-fill" />
-          <line x1={-16} y1={0} x2={14} y2={-12} className="sym" strokeWidth="2.5" />
-          <line x1={0} y1={-22} x2={0} y2={-12} className="sym" strokeWidth="2" />
-          <rect x={-10} y={-30} width={20} height={8} rx={2} className="sym" strokeWidth="2" />
-        </g>
-      );
-    case "motor":
-      return (
-        <g>
-          <line x1={-TERM_DX} y1={0} x2={-18} y2={0} className="wire" />
-          <line x1={18} y1={0} x2={TERM_DX} y2={0} className="wire" />
-          <circle r={18} className="lamp" />
-          <text className="dev-label" y={4} textAnchor="middle" fontSize={14}>
-            M
-          </text>
-        </g>
-      );
-  }
 }

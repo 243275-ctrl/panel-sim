@@ -12,18 +12,58 @@ export type DeviceType =
   | "source"
   | "ac-source"
   | "ground"
+  | "transformer-1p"
+  | "transformer-3p"
+  | "battery"
+  | "generator"
   | "button"
   | "button-nc"
+  | "estop"
   | "selector"
+  | "switch-2way"
+  | "keyswitch"
   | "lamp"
+  | "lamp-amber"
+  | "buzzer"
+  | "beacon"
+  | "contactor"
+  | "contactor-rev"
+  | "relay"
+  | "aux-no"
+  | "aux-nc"
+  | "changeover"
+  | "fuse"
+  | "breaker-1p"
+  | "breaker-3p"
+  | "mccb"
+  | "overload"
+  | "surge"
+  | "rccb"
   | "resistor"
   | "capacitor"
   | "inductor"
-  | "fuse"
-  | "breaker"
-  | "overload"
-  | "contactor"
-  | "motor";
+  | "potentiometer"
+  | "thermistor"
+  | "motor"
+  | "motor-1ph"
+  | "motor-dc"
+  | "vfd"
+  | "servo-drive"
+  | "multimeter"
+  | "clamp"
+  | "voltmeter"
+  | "ammeter"
+  | "pt100"
+  | "pressure-sensor"
+  | "proximity-sensor"
+  | "photo-sensor"
+  | "level-sensor"
+  | "plc"
+  | "plc-expansion"
+  | "analog-module"
+  | "terminal-block"
+  | "junction-box"
+  | "connector";
 
 export interface Device {
   id: string;
@@ -96,18 +136,58 @@ const PREFIX: Record<DeviceType, string> = {
   source: "V",
   "ac-source": "U",
   ground: "PE",
+  "transformer-1p": "TC",
+  "transformer-3p": "TM",
+  battery: "BT",
+  generator: "GEN",
   button: "S",
   "button-nc": "S",
+  estop: "SB",
   selector: "SA",
+  "switch-2way": "SW",
+  keyswitch: "SK",
   lamp: "H",
+  "lamp-amber": "H",
+  buzzer: "BZ",
+  beacon: "YL",
+  contactor: "KM",
+  "contactor-rev": "KMR",
+  relay: "KA",
+  "aux-no": "KM",
+  "aux-nc": "KM",
+  changeover: "KA",
+  fuse: "FU",
+  "breaker-1p": "QF",
+  "breaker-3p": "QF",
+  mccb: "QF",
+  overload: "FR",
+  surge: "FSP",
+  rccb: "QF",
   resistor: "R",
   capacitor: "C",
   inductor: "L",
-  fuse: "FU",
-  breaker: "QF",
-  overload: "FR",
-  contactor: "KM",
+  potentiometer: "RV",
+  thermistor: "PTC",
   motor: "M",
+  "motor-1ph": "M",
+  "motor-dc": "MD",
+  vfd: "U",
+  "servo-drive": "SV",
+  multimeter: "TQ",
+  clamp: "TQ",
+  voltmeter: "PV",
+  ammeter: "PA",
+  pt100: "TT",
+  "pressure-sensor": "PT",
+  "proximity-sensor": "SQ",
+  "photo-sensor": "B",
+  "level-sensor": "LG",
+  plc: "PLC",
+  "plc-expansion": "EX",
+  "analog-module": "AM",
+  "terminal-block": "XT",
+  "junction-box": "JX",
+  connector: "XS",
 };
 
 const counts = (s: State, type: DeviceType) =>

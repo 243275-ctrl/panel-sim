@@ -2,9 +2,9 @@ import { useRef, useState, type ChangeEvent } from "react";
 import {
   useDispatchApp,
   useApp,
-  type DeviceType,
 } from "../state/store";
-import { CATEGORIES, LIBRARY, matches } from "../data/library";
+import { CATEGORIES, LIBRARY, matches, TYPE_META } from "../data/library";
+import { DeviceArt } from "../art/Pictorial";
 import { parseAndValidate, serialize } from "../state/psim";
 
 export function TitleBar() {
@@ -203,7 +203,9 @@ export function LibraryPanel() {
                   onClick={() => dispatch({ t: "placeType", dt: it.type })}
                 >
                   <span className="glyph" aria-hidden>
-                    {GLYPHS[it.type]}
+                    <svg viewBox="-40 -36 80 72" width="40" height="36">
+                      <DeviceArt type={it.type} />
+                    </svg>
                   </span>
                   <span>
                     {it.label}
@@ -218,31 +220,12 @@ export function LibraryPanel() {
         })}
         {!visible.length && <p className="hint-text">No devices match “{q}”.</p>}
         <p className="hint-text">
-          15 of 45+ types — all free, nothing locked. Full pictorial art and
-          the remaining types land as M1 completes.
+          {LIBRARY.length} types — every category, all free, nothing locked.
         </p>
       </div>
     </aside>
   );
 }
-
-const GLYPHS: Record<DeviceType, string> = {
-  source: "▮▮",
-  "ac-source": "∿",
-  ground: "⏚",
-  button: "⬤",
-  "button-nc": "◍",
-  selector: "◔",
-  lamp: "◉",
-  resistor: "⏛",
-  capacitor: "⊭",
-  inductor: "⋒",
-  fuse: "▭",
-  breaker: "⟂",
-  overload: "∿▱",
-  contactor: "☰",
-  motor: "Ⓜ",
-};
 
 export function PropertiesPanel() {
   const s = useApp();
@@ -280,6 +263,37 @@ export function PropertiesPanel() {
             <div className="field">
               <span className="ro">type</span>
               <div className="ro">{sel.type}</div>
+            </div>
+            <div className="field">
+              <span className="ro">Terminals</span>
+              <div className="terms">
+                {[0, 1].map((t) => {
+                  const w = s.wires.find(
+                    (w) =>
+                      (w.a.dev === sel.id && w.a.term === t) ||
+                      (w.b.dev === sel.id && w.b.term === t),
+                  );
+                  const end = w
+                    ? w.a.dev === sel.id
+                      ? `${w.b.dev}:${w.b.term === 0 ? "1" : "2"}`
+                      : `${w.a.dev}:${w.a.term === 0 ? "1" : "2"}`
+                    : null;
+                  const label =
+                    TYPE_META[sel.type]?.terms?.[t] ?? String(t + 1);
+                  return (
+                    <div
+                      key={t}
+                      className={`term-row ${end ? "on" : "off"}`}
+                    >
+                      <span className="tno">{t + 1}</span>
+                      <span className="tlabel">{label}</span>
+                      <span className="tconn">
+                        {end ? `→ ${end}` : "open"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <div className="row-btns">
               <button
