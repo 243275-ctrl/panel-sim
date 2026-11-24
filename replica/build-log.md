@@ -47,3 +47,46 @@
 
 **Next:** M1 — full device library with own SVG art, properties forms, save /
 open `.psim`, undo/redo, pan/zoom.
+
+## 2026-11-24 — M1 editor
+
+**Decision recorded:** every part of the app is **free** — no Pro tier, no
+locked tiles, no license server (features.csv gating row → skip;
+architecture payments row → "none — ever").
+
+**Screens**
+
+| ID | state | what's missing |
+| --- | --- | --- |
+| S01 start | done | — |
+| S02 editor canvas | partial | copy/paste; drag-to-move of placed devices (rotate/mirror/pan/zoom done) |
+| S03 library | partial | 15 of 45+ types; full pictorial art; search + categories done |
+| S04 properties | done | — (name, voltage, resistance, motor 6/9/12, rotate/mirror) |
+| S05 simulation | partial | same as M0 (M2 = nodal solver) |
+| S09 save/open | partial | download + file-open work; native OS dialogs need the desktop shell |
+
+**Done**
+
+- Undo/redo (Ctrl+Z / Ctrl+Y, 100-step history on document changes only).
+- Rotate 90° (R) / mirror (M) with terminal positions rotated correctly.
+- Pan (drag) + zoom (wheel, 35–300%) with cursor-anchored scaling.
+- `.psim` v1: versioned JSON, fail-closed validation (6 tests: bad JSON,
+  dangling wire, duplicate id, bad rot, bad motor connection, round trip).
+- Library: 15 device types in 7 categories with working search; all free.
+- Solver: resistors now act as loads (V/R); unmodelled types refuse to close
+  a loop and say "model arrives in a later milestone".
+- Verified: **15/15 vitest**, `tsc` clean, `vite build` ok.
+
+**Harder than it looked**
+
+- Rotation: terminals must land exactly on grid after 90° turns — integer
+  rotation table instead of trig (floating point broke snapping).
+- History: only document-changing actions push undo steps (wire-preview
+  clicks and run/stop must not pollute the stack) — decided by comparing
+  device/wire/project references after each action.
+
+**Still missing (carried):** clone-screens screenshots (no display in
+sandbox), copy/paste, native file dialogs, drag-move.
+
+**Next:** M2 — full nodal DC solver (multiple sources, ground, parallel
+branches), then M3 motors + control.

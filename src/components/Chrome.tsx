@@ -1,4 +1,11 @@
-import { useDispatchApp, useApp, type DeviceType } from "../state/store";
+import { useRef, useState, type ChangeEvent } from "react";
+import {
+  useDispatchApp,
+  useApp,
+  type DeviceType,
+} from "../state/store";
+import { CATEGORIES, LIBRARY, matches } from "../data/library";
+import { parseAndValidate, serialize } from "../state/psim";
 
 export function TitleBar() {
   const s = useApp();
@@ -20,8 +27,78 @@ export function TitleBar() {
 export function Toolbar() {
   const s = useApp();
   const dispatch = useDispatchApp();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onSave = () => {
+    const text = serialize(s.devices, s.wires, s.projectName);
+    const blob = new Blob([text], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${(s.projectName || "project").replace(/[^\w\- ]+/g, "")}.psim`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    dispatch({ t: "notice", text: "Project downloaded (.psim)" });
+  };
+
+  const onOpenFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const text = await file.text();
+    const res = parseAndValidate(text);
+    if (!res.ok) {
+      dispatch({
+        t: "notice",
+        text: `Cannot open: ${res.errors[0]}${res.errors.length > 1 ? ` (+${res.errors.length - 1})` : ""}`,
+      });
+      return;
+    }
+    dispatch({
+      t: "open",
+      projectName: res.doc.meta.name,
+      devices: res.doc.devices,
+      wires: res.doc.wires,
+      id: res.doc.meta.id,
+    });
+  };
+
   return (
     <div className="toolbar" role="toolbar" aria-label="Tools and simulation">
+      <button
+        className="tbtn"
+        onClick={() => dispatch({ t: "undo" })}
+        disabled={!s.past.length}
+        title="Undo (Ctrl+Z)"
+      >
+        ↶
+      </button>
+      <button
+        className="tbtn"
+        onClick={() => dispatch({ t: "redo" })}
+        disabled={!s.future.length}
+        title="Redo (Ctrl+Y)"
+      >
+        ↷
+      </button>
+      <span className="sep" />
+      <button className="tbtn" onClick={onSave} title="Download project (Ctrl+S)">
+        💾 Save
+      </button>
+      <button
+        className="tbtn"
+        onClick={() => fileRef.current?.click()}
+        title="Open .psim file"
+      >
+        📂 Open
+      </button>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".psim,.json,application/json"
+        hidden
+        onChange={onOpenFile}
+      />
+      <span className="sep" />
       <button
         className={`tbtn ${s.tool === "select" ? "on" : ""}`}
         aria-pressed={s.tool === "select"}
@@ -62,13 +139,12 @@ export function Toolbar() {
       >
         ↺ Reset
       </button>
-      <span className="sep" />
       <span className="hint">
         {s.tool === "place"
           ? "Click the canvas to place — Esc cancels"
           : s.tool === "wire"
             ? "Click two terminals — Esc cancels"
-            : "W wire · V select · Del remove · hold a button while running"}
+            : "R rotate · M mirror · Del remove · hold a button while running"}
       </span>
     </div>
   );
@@ -87,6 +163,7 @@ export function StatusBar() {
       <span>
         {s.devices.length} devices · {s.wires.length} wires
       </span>
+      {s.notice && <span className="notice">{s.notice}</span>}
       <span className="mono">
         {s.running ? "sim clock · dt 1 ms" : "—"}
       </span>
@@ -94,15 +171,13 @@ export function StatusBar() {
   );
 }
 
-const LIBRARY: { type: DeviceType; label: string; meta: string; glyph: string }[] = [
-  { type: "source", label: "DC source", meta: "24 V control supply", glyph: "▮▮" },
-  { type: "button", label: "Push button, NO", meta: "momentary contact", glyph: "⬤" },
-  { type: "lamp", label: "Pilot light", meta: "24 V indicator", glyph: "◉" },
-];
-
 export function LibraryPanel() {
   const s = useApp();
   const dispatch = useDispatchApp();
+  const [q, setQ] = useState("");
+
+  const visible = LIBRARY.filter((l) => matches(l, q));
+
   return (
     <aside className="panel" aria-label="Device library">
       <h2>Library</h2>
@@ -112,32 +187,62 @@ export function LibraryPanel() {
           type="search"
           placeholder="Search devices…"
           aria-label="Search devices"
-          disabled
-          title="Search arrives with the full library (M1)"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
         />
-        {LIBRARY.map((it) => (
-          <button
-            key={it.type}
-            className={`tile ${s.tool === "place" && s.placeType === it.type ? "on" : ""}`}
-            onClick={() => dispatch({ t: "placeType", dt: it.type })}
-          >
-            <span className="glyph" aria-hidden>
-              {it.glyph}
-            </span>
-            <span>
-              {it.label}
-              <span className="meta">{it.meta}</span>
-            </span>
-          </button>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const items = visible.filter((l) => l.category === cat);
+          if (!items.length) return null;
+          return (
+            <section key={cat}>
+              <h3 className="cat-head">{cat}</h3>
+              {items.map((it) => (
+                <button
+                  key={it.type}
+                  className={`tile ${s.tool === "place" && s.placeType === it.type ? "on" : ""}`}
+                  onClick={() => dispatch({ t: "placeType", dt: it.type })}
+                >
+                  <span className="glyph" aria-hidden>
+                    {GLYPHS[it.type]}
+                  </span>
+                  <span>
+                    {it.label}
+                    <span className="meta">
+                      {it.sim ? "simulated now" : it.meta}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </section>
+          );
+        })}
+        {!visible.length && <p className="hint-text">No devices match “{q}”.</p>}
         <p className="hint-text">
-          M0 ships 3 device types — the full library (45+ with our own pictorial
-          art) lands in M1.
+          15 of 45+ types — all free, nothing locked. Full pictorial art and
+          the remaining types land as M1 completes.
         </p>
       </div>
     </aside>
   );
 }
+
+const GLYPHS: Record<DeviceType, string> = {
+  source: "▮▮",
+  "ac-source": "∿",
+  ground: "⏚",
+  button: "⬤",
+  "button-nc": "◍",
+  selector: "◔",
+  lamp: "◉",
+  resistor: "⏛",
+  capacitor: "⊭",
+  inductor: "⋒",
+  fuse: "▭",
+  breaker: "⟂",
+  overload: "∿▱",
+  contactor: "☰",
+  motor: "Ⓜ",
+};
 
 export function PropertiesPanel() {
   const s = useApp();
@@ -176,6 +281,22 @@ export function PropertiesPanel() {
               <span className="ro">type</span>
               <div className="ro">{sel.type}</div>
             </div>
+            <div className="row-btns">
+              <button
+                className="tbtn"
+                onClick={() => dispatch({ t: "rotate" })}
+                title="Rotate 90° (R)"
+              >
+                ↻ Rotate
+              </button>
+              <button
+                className="tbtn"
+                onClick={() => dispatch({ t: "flip" })}
+                title="Mirror (M)"
+              >
+                ⇄ Mirror
+              </button>
+            </div>
             {sel.type === "source" && (
               <div className="field">
                 <label htmlFor="pv">Voltage (V)</label>
@@ -196,7 +317,7 @@ export function PropertiesPanel() {
                 />
               </div>
             )}
-            {sel.type === "lamp" && (
+            {(sel.type === "lamp" || sel.type === "resistor") && (
               <div className="field">
                 <label htmlFor="pr">Resistance (Ω)</label>
                 <input
@@ -213,6 +334,27 @@ export function PropertiesPanel() {
                     })
                   }
                 />
+              </div>
+            )}
+            {sel.type === "motor" && (
+              <div className="field">
+                <label htmlFor="pconn">Motor connection</label>
+                <select
+                  id="pconn"
+                  value={sel.params.connection ?? 12}
+                  onChange={(e) =>
+                    dispatch({
+                      t: "param",
+                      id: sel.id,
+                      key: "connection",
+                      value: Number(e.target.value),
+                    })
+                  }
+                >
+                  <option value={6}>6-lead</option>
+                  <option value={9}>9-lead</option>
+                  <option value={12}>12-lead</option>
+                </select>
               </div>
             )}
             {sel.type === "button" && (
@@ -246,7 +388,7 @@ export function StartOverlay() {
     <div className="overlay" role="dialog" aria-modal="true" aria-label="Start">
       <div className="start-card">
         <h1>panel-sim</h1>
-        <p>Industrial panel simulator for Windows — start a project</p>
+        <p>Industrial panel simulator for Windows — every part is free</p>
         <div className="actions">
           <button
             className="btn primary"
@@ -262,7 +404,7 @@ export function StartOverlay() {
           </button>
         </div>
         <p className="note">
-          Free · offline · no account. M0 slice of the replica build.
+          Offline · no account · no paid tiers — M1 of the replica build.
         </p>
       </div>
     </div>

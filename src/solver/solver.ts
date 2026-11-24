@@ -1,9 +1,11 @@
-// panel-sim circuit solver — M0: single-loop DC through passable edges.
+// panel-sim circuit solver — M0/M1: single-loop DC through passable edges.
 // Pure module, no DOM, deterministic. Full nodal analysis arrives in M2.
+
+import type { DeviceType } from "../state/store";
 
 export interface SolDevice {
   id: string;
-  type: "source" | "button" | "lamp";
+  type: DeviceType;
   name: string;
   params: Record<string, number>;
 }
@@ -76,6 +78,12 @@ export function simulate(
   if (sources.length > 1)
     faults.push("Multiple sources are not supported yet (M2)");
 
+  // editor-ready types whose simulation model lands in M2/M3/M4
+  const SIM_TYPES: DeviceType[] = ["source", "button", "lamp", "resistor"];
+  for (const d of devices)
+    if (!SIM_TYPES.includes(d.type))
+      faults.push(`${d.name}: simulation model arrives in a later milestone`);
+
   const uf = new Union();
   for (const d of devices) {
     uf.find(termKey(d.id, 0));
@@ -85,8 +93,10 @@ export function simulate(
 
   // A source does NOT bridge its own terminals: the loop must return
   // through the rest of the circuit, otherwise every source reads "closed".
+  // Loads that conduct: lamps and resistors (both carry a resistance).
   const passable = (d: SolDevice) =>
     d.type === "lamp" ||
+    d.type === "resistor" ||
     (d.type === "button" && running && pressed.includes(d.id));
   for (const d of devices)
     if (passable(d)) uf.union(termKey(d.id, 0), termKey(d.id, 1));
@@ -97,16 +107,18 @@ export function simulate(
   if (source && running) {
     closed = uf.same(termKey(source.id, 0), termKey(source.id, 1));
     if (closed) {
-      const lamps = devices.filter(
-        (d) => d.type === "lamp" && uf.same(termKey(d.id, 0), termKey(source.id, 0)),
+      const loads = devices.filter(
+        (d) =>
+          (d.type === "lamp" || d.type === "resistor") &&
+          uf.same(termKey(d.id, 0), termKey(source.id, 0)),
       );
-      const totalR = lamps.reduce((sum, l) => sum + (l.params.r || 100), 0);
-      if (lamps.length === 0 || totalR <= 0) {
+      const totalR = loads.reduce((sum, l) => sum + (l.params.r || 100), 0);
+      if (loads.length === 0 || totalR <= 0) {
         faults.push("Short circuit — no load in the loop");
         closed = false;
       } else {
         current = (source.params.v || 24) / totalR;
-        for (const l of lamps) lit.add(l.id);
+        for (const l of loads) if (l.type === "lamp") lit.add(l.id);
         const loopRoot = uf.find(termKey(source.id, 0));
         for (const w of wires)
           if (

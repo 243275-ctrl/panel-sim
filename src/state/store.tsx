@@ -8,7 +8,22 @@ import {
 } from "react";
 
 export type ToolMode = "select" | "wire" | "place";
-export type DeviceType = "source" | "button" | "lamp";
+export type DeviceType =
+  | "source"
+  | "ac-source"
+  | "ground"
+  | "button"
+  | "button-nc"
+  | "selector"
+  | "lamp"
+  | "resistor"
+  | "capacitor"
+  | "inductor"
+  | "fuse"
+  | "breaker"
+  | "overload"
+  | "contactor"
+  | "motor";
 
 export interface Device {
   id: string;
@@ -16,6 +31,8 @@ export interface Device {
   name: string;
   x: number;
   y: number;
+  rot?: 0 | 90 | 180 | 270;
+  flip?: boolean;
   params: Record<string, number>;
 }
 
@@ -26,6 +43,13 @@ export interface Wire {
 }
 
 export type Selection = { kind: "d" | "w"; id: string } | null;
+
+interface DocSnap {
+  devices: Device[];
+  wires: Wire[];
+  projectName: string;
+  selection: Selection;
+}
 
 export interface State {
   started: boolean;
@@ -38,6 +62,9 @@ export interface State {
   wireFrom: { dev: string; term: 0 | 1 } | null;
   running: boolean;
   pressed: string[];
+  notice: string | null;
+  past: DocSnap[];
+  future: DocSnap[];
 }
 
 export type Action =
@@ -54,10 +81,34 @@ export type Action =
   | { t: "press"; id: string }
   | { t: "release"; id: string }
   | { t: "rename"; id: string; name: string }
-  | { t: "param"; id: string; key: string; value: number };
+  | { t: "param"; id: string; key: string; value: number }
+  | { t: "rotate" }
+  | { t: "flip" }
+  | { t: "undo" }
+  | { t: "redo" }
+  | { t: "open"; projectName: string; devices: Device[]; wires: Wire[]; id: string }
+  | { t: "notice"; text: string | null };
 
 export const uid = (prefix: string) =>
   prefix + Math.random().toString(36).slice(2, 9);
+
+const PREFIX: Record<DeviceType, string> = {
+  source: "V",
+  "ac-source": "U",
+  ground: "PE",
+  button: "S",
+  "button-nc": "S",
+  selector: "SA",
+  lamp: "H",
+  resistor: "R",
+  capacitor: "C",
+  inductor: "L",
+  fuse: "FU",
+  breaker: "QF",
+  overload: "FR",
+  contactor: "KM",
+  motor: "M",
+};
 
 const counts = (s: State, type: DeviceType) =>
   s.devices.filter((d) => d.type === type).length + 1;
@@ -106,9 +157,21 @@ const initial: State = {
   wireFrom: null,
   running: false,
   pressed: [],
+  notice: null,
+  past: [],
+  future: [],
 };
 
-export function reducer(state: State, a: Action): State {
+function snap(s: State): DocSnap {
+  return {
+    devices: s.devices,
+    wires: s.wires,
+    projectName: s.projectName,
+    selection: s.selection,
+  };
+}
+
+function base(state: State, a: Action): State {
   switch (a.t) {
     case "start": {
       if (a.example) {
@@ -129,14 +192,21 @@ export function reducer(state: State, a: Action): State {
     case "place": {
       const type = state.placeType;
       if (!type) return state;
-      const prefix = type === "source" ? "V" : type === "button" ? "S" : "H";
+      const prefix = PREFIX[type];
       const device: Device = {
         id: uid(prefix),
         type,
         name: `${prefix}${counts(state, type)}`,
         x: a.x,
         y: a.y,
-        params: type === "source" ? { v: 24 } : type === "lamp" ? { r: 100 } : {},
+        params:
+          type === "source"
+            ? { v: 24 }
+            : type === "lamp" || type === "resistor"
+              ? { r: 100 }
+              : type === "motor"
+                ? { connection: 12 }
+                : {},
       };
       return {
         ...state,
@@ -165,7 +235,11 @@ export function reducer(state: State, a: Action): State {
             w.a.term === a.term),
       );
       if (dup) return { ...state, wireFrom: null };
-      const wire: Wire = { id: uid("w"), a: first, b: { dev: a.dev, term: a.term } };
+      const wire: Wire = {
+        id: uid("w"),
+        a: first,
+        b: { dev: a.dev, term: a.term },
+      };
       return { ...state, wires: [...state.wires, wire], wireFrom: null };
     }
     case "deleteSel": {
@@ -187,11 +261,17 @@ export function reducer(state: State, a: Action): State {
       };
     }
     case "run":
-      return { ...state, running: true };
+      return { ...state, running: true, notice: null };
     case "stop":
       return { ...state, running: false, pressed: [] };
     case "reset":
-      return { ...state, running: false, pressed: [], selection: null, wireFrom: null };
+      return {
+        ...state,
+        running: false,
+        pressed: [],
+        selection: null,
+        wireFrom: null,
+      };
     case "press":
       if (!state.running || state.pressed.includes(a.id)) return state;
       return { ...state, pressed: [...state.pressed, a.id] };
@@ -213,9 +293,82 @@ export function reducer(state: State, a: Action): State {
             : d,
         ),
       };
+    case "rotate":
+      return {
+        ...state,
+        devices: state.devices.map((d) =>
+          d.id === state.selection?.id && state.selection.kind === "d"
+            ? { ...d, rot: (((d.rot ?? 0) + 90) % 360) as 0 | 90 | 180 | 270 }
+            : d,
+        ),
+      };
+    case "flip":
+      return {
+        ...state,
+        devices: state.devices.map((d) =>
+          d.id === state.selection?.id && state.selection.kind === "d"
+            ? { ...d, flip: !d.flip }
+            : d,
+        ),
+      };
+    case "open":
+      return {
+        ...state,
+        started: true,
+        projectName: a.projectName,
+        devices: a.devices,
+        wires: a.wires,
+        selection: null,
+        wireFrom: null,
+        running: false,
+        pressed: [],
+        notice: `Opened “${a.projectName}” — ${a.devices.length} devices`,
+      };
+    case "notice":
+      return { ...state, notice: a.text };
+    case "undo":
+      if (!state.past.length) return state;
+      {
+        const prev = state.past[state.past.length - 1];
+        return {
+          ...state,
+          ...prev,
+          past: state.past.slice(0, -1),
+          future: [snap(state), ...state.future].slice(0, 100),
+          notice: "Undone",
+        };
+      }
+    case "redo":
+      if (!state.future.length) return state;
+      {
+        const next = state.future[0];
+        return {
+          ...state,
+          ...next,
+          past: [...state.past, snap(state)].slice(-100),
+          future: state.future.slice(1),
+          notice: "Redone",
+        };
+      }
     default:
       return state;
   }
+}
+
+export function reducer(state: State, a: Action): State {
+  if (a.t === "undo" || a.t === "redo") return base(state, a);
+  const next = base(state, a);
+  const docChanged =
+    next.devices !== state.devices ||
+    next.wires !== state.wires ||
+    next.projectName !== state.projectName;
+  if (docChanged)
+    return {
+      ...next,
+      past: [...state.past, snap(state)].slice(0, 100),
+      future: [],
+    };
+  return next;
 }
 
 const StateCtx = createContext<State>(initial);

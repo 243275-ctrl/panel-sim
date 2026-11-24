@@ -15,8 +15,8 @@ in v1. Sources: `replica/recon.md`, `replica/features.csv`.
 | export | SVG→PNG (offscreen), PDF via print pipeline | Store feature: "export them to image or PDF" |
 | i18n | i18next, EN/ES | Store lists English and Spanish |
 | packaging | electron-builder → NSIS installer (+ portable exe), GitHub Actions `windows-latest` | builds the Windows artifact in CI; no local Windows box needed |
-| payments | none in v1 | free tier first; later Pro via Lemon Squeezy/Paddle (VAT handled, fits a solo global seller) |
-| backend | none in v1 | simulator is 100% local; a minimal license API appears only with Pro licensing (own design) |
+| payments | **none — ever** | user decision 2026-11-24: every part of the app is free; no Pro tier, no gating, no license server |
+| backend | none | simulator is 100% local; no accounts, no activation, no telemetry |
 
 One process model: main (file I/O, dialogs, export) + renderer (UI) + worker
 (solver). No microservices, no cloud in v1.

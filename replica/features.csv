@@ -1,6 +1,6 @@
 feature,area,priority,original,clone,notes
 Place devices and wire terminal-to-terminal,editor,must,yes,yes,M0 canvas: select/wire tools + snap grid
-Device library with pictorial devices (45 free / 117 pro),library,must,yes,partial,M0: 3 types with schematic glyphs; own SVG art + full library in M1
+Device library with pictorial devices (45 free / 117 pro),library,must,yes,partial,"M1: 15 types, categories + search, own schematic symbols; remaining types + full pictorial art next"
 Electrical simulation: compute voltages and currents across the circuit,simulation,must,yes,no,
 Run / stop / reset simulation transport,simulation,must,yes,yes,M0 single-loop solver; full nodal analysis in M2
 Three-phase motor with full nameplate (6/9/12-lead),motors,must,yes,no,connection selectable
@@ -13,22 +13,22 @@ Breakers and fuses trip on short circuit,protection,must,yes,no,
 Phase-loss fault detection,protection,must,yes,no,evidence: pricing page fault list
 Multimeter (voltage and current),instruments,must,yes,no,free tier: one device
 Clamp meter,instruments,must,yes,no,pro tier
-Save and open projects,files,must,yes,no,
+Save and open projects,files,must,yes,yes,M1: .psim JSON with fail-closed validation; download + file open (native dialogs on desktop shell)
 Export project to image and PDF,files,must,yes,no,
 Ladder editor with compact PLC run and watch,plc,should,yes,no,phase 2; generic PLC not Siemens-branded
 Analog signals 0-10V / 4-20mA with sensors and Pt100 + transmitter,analog,should,yes,no,phase 2
 Variable frequency drive with keypad parameters and faults,drives,should,yes,no,phase 2; generic VFD
-Undo / redo and copy / paste,editor,should,yes,no,
-Grid snap rotate mirror pan and zoom,editor,should,yes,no,
+Undo / redo and copy / paste,editor,should,yes,partial,M1: undo/redo (Ctrl+Z/Y) done; copy/paste pending
+Grid snap rotate mirror pan and zoom,editor,should,yes,yes,"M1: 20px snap, R rotate, M mirror, drag pan, scroll zoom"
 Starter templates (DOL star-delta time switch safety relays),templates,should,yes,no,gallery examples
 Interlocks and safety-relay behavior,control,should,yes,no,
 English and Spanish UI,i18n,should,yes,no,store listing languages
 Reusable subcircuits,editor,could,yes,no,
 Growing device library packs,library,could,yes,no,store feature: library keeps growing
-Free / Pro gating by device count,licensing,could,yes,no,design own model; not their scheme
+Free / Pro gating by device count,licensing,could,yes,skip,"user decision 2026-11-24: all parts free, no paid tier ever"
 EduVolt brand name and site copy,brand,could,yes,skip,their IP; replica-brand renames anyway
 Device pictorial artwork from their library,assets,could,yes,skip,ToS section 2 claims library copyright
 Manufacturer logos (Siemens Delta Schneider WEG Pilz),assets,could,yes,skip,trademarks; datasheet behavior with generic names
-Their license-server activation scheme,licensing,could,yes,skip,build own licensing
+Their license-server activation scheme,licensing,could,yes,skip,not needed: app is fully free — no license server of any kind
 Reverse engineering or decompiling their app,legal,could,yes,skip,forbidden by ToS and skill rules
 Academy courses platform,scope,could,yes,skip,different product

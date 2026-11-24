@@ -61,4 +61,38 @@ describe("simulate (M0 single loop)", () => {
     expect(a.current).toBe(b.current);
     expect([...a.lit]).toEqual([...b.lit]);
   });
+
+  it("treats a resistor as a load (V/R, no light)", () => {
+    const R: SolDevice = {
+      id: "R1",
+      type: "resistor",
+      name: "R1",
+      params: { r: 48 },
+    };
+    const wires: SolWire[] = [
+      { id: "w1", a: { dev: "V1", term: 1 }, b: { dev: "R1", term: 0 } },
+      { id: "w2", a: { dev: "R1", term: 1 }, b: { dev: "V1", term: 0 } },
+    ];
+    const r = simulate([V, R], wires, [], true);
+    expect(r.closed).toBe(true);
+    expect(r.current).toBeCloseTo(0.5, 5);
+    expect(r.lit.size).toBe(0);
+    expect(r.faults).toEqual([]);
+  });
+
+  it("refuses to close a loop through an unmodelled device", () => {
+    const M: SolDevice = {
+      id: "M1",
+      type: "motor",
+      name: "M1",
+      params: { connection: 12 },
+    };
+    const wires: SolWire[] = [
+      { id: "w1", a: { dev: "V1", term: 1 }, b: { dev: "M1", term: 0 } },
+      { id: "w2", a: { dev: "M1", term: 1 }, b: { dev: "V1", term: 0 } },
+    ];
+    const r = simulate([V, M], wires, [], true);
+    expect(r.closed).toBe(false);
+    expect(r.faults.some((f) => f.includes("later milestone"))).toBe(true);
+  });
 });

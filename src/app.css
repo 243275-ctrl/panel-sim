@@ -147,6 +147,14 @@ body {
 }
 
 /* library */
+.cat-head {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin: var(--space-4) 0 var(--space-1);
+}
 .search {
   width: 100%;
   height: 32px;
@@ -391,6 +399,31 @@ body {
 .statusbar .mono {
   font-family: var(--font-mono);
   margin-left: auto;
+}
+.statusbar .notice {
+  color: var(--color-accent);
+  font-weight: 600;
+  max-width: 34%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row-btns {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.zoom-badge {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  background: var(--color-chrome);
+  color: var(--color-on-chrome);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  opacity: 0.85;
+  pointer-events: none;
 }
 .dot {
   width: 8px;

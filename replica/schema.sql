@@ -17,17 +17,9 @@ create table if not exists recent_projects (
 );
 create index if not exists idx_recent_opened on recent_projects (last_opened_at desc);
 
--- Reserved for Pro licensing (own design; NOT the original's scheme).
--- Money, when it arrives: integer minor units + currency code.
-create table if not exists licenses (
-  id             text primary key,          -- license key id (opaque)
-  tier           text not null check (tier in ('free', 'pro')),
-  expires_at     text,                      -- timestamptz UTC; null = free
-  currency       text,                      -- ISO-4217, paid tiers only
-  amount_minor   integer,                   -- paid tiers only
-  created_at     text not null default (datetime('now')),
-  updated_at     text not null default (datetime('now'))
-);
+-- NOTE: the licenses table from the original plan was removed by user
+-- decision (2026-11-24): every part of the app is free — no tiers,
+-- no expiry, no license server. Kept here as history, not as DDL.
 
 -- ---------------------------------------------------------------------------
 -- .psim project file (JSON, versioned). One file = one project.
