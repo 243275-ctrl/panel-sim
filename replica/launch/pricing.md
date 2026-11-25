@@ -15,6 +15,14 @@ and eduvoltacademy.com (read 2026-11-24). Prices change; re-read before any
 comparison page ships. **A public comparison naming the original is a legal
 question for a lawyer in your country — this file is internal.**
 
+## Market reference #2 — WireONa (read 2026-11-24)
+
+wireona.com free tier = first **10 missions**; full device library and
+PLC/HMI behind **Advanced: US$8.19/mo · US$41.99/yr · US$99.99 lifetime**
+(14-day trial); sign-in required to work. Full notes:
+`replica/competitive.md`. Reinforces angle A: we are the only one of the
+three (EduVolt, WireONa, PanelSim) with **everything free and no account**.
+
 ## Why no paid tier (standing rule)
 
 The commissioner's rule (2026-11-24): *every part free forever, no tiers,
