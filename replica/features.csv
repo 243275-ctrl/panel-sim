@@ -34,3 +34,4 @@ Reverse engineering or decompiling their app,legal,could,yes,skip,forbidden by T
 Academy courses platform,scope,could,yes,skip,different product
 Works fully offline — no license verification server,platform,must,no,yes,vendor fact: app 'goes online from time to time to verify the license'; we have no server at all
 "All device types free forever — no tiers, no in-app purchases",platform,must,no,yes,"vendor fact: 45 free devices + Pro plans + IAP; standing rule: free forever, no payments ever"
+Arduino sketch export (.ino) from the ladder program,export,could,no,yes,"generator mirrors evalLadder pass1/pass2 + TON semantics; default pin map D2-D5 / D8-D11; g++-syntax-checked"

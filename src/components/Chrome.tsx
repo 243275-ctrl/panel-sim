@@ -7,6 +7,7 @@ import { CATEGORIES, LIBRARY, matches, TYPE_META } from "../data/library";
 import { DeviceArt } from "../art/Pictorial";
 import { parseAndValidate, serialize } from "../state/psim";
 import { exportPanelPdf, exportPanelPng } from "../canvas/export";
+import { generateArduinoSketch } from "../export/arduino";
 import { simulate } from "../solver/solver";
 
 const fmtV = (v: number) => `${v.toFixed(2)} V`;
@@ -130,6 +131,22 @@ export function Toolbar() {
         }}
       >
         📄 PDF
+      </button>
+      <button
+        className="tbtn"
+        title="Export ladder program as Arduino sketch (.ino)"
+        onClick={() => {
+          const ino = generateArduinoSketch(s.program, s.projectName);
+          const blob = new Blob([ino], { type: "text/plain" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `${(s.projectName || "project").replace(/[^\w\- ]+/g, "")}.ino`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+          dispatch({ t: "notice", text: "Exported Arduino sketch (.ino)" });
+        }}
+      >
+        🔌 .ino
       </button>
       <span className="sep" />
       <button

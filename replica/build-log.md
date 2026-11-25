@@ -298,3 +298,29 @@ branches), then M3 motors + control.
 - Sizes follow the real-sizes ladder: cards 30–47 tall, below battery/motor.
 - Verified: tsc clean · vitest **50/50** (63-type contract) · vite build ·
   art sheet regenerated (`replica/design/art-sheet-after.png`) · parity exit 0.
+
+## Live deploy + v0.7.0 + Arduino export — M5 (2026-11-25)
+- **Preflight (replica-deploy skill)**: tsc · vitest · build · parity exit 0 ·
+  sweep clean · listing 0/0 — plus the checklist gaps found and fixed:
+  `privacy.html` + `terms.html` + `favicon.ico` (`32ae451`). Full record in
+  `replica/deploy.md`.
+- **Core-flow check caught a real blocker**: the repo was `private`, so every
+  anonymous link 404'd — landing CTA, installer download, everything. On the
+  user's go: repo made **public**, Pages enabled (`main /docs`) →
+  **live at https://243275-ctrl.github.io/panel-sim/** — all routes
+  (`/`, privacy, terms, favicon, releases/latest, assets) verified 200/206
+  anonymously.
+- **v0.7.0 shipped** (user's go): version bumped BEFORE tagging, CI run
+  `45715673348` green in 2m40s → `PanelSim.Setup.0.7.0.exe`
+  (213,108,876 B, auto-uploaded); local `electron-builder --win dir` →
+  `PanelSim-win-x64-0.7.0.zip` (262,031,720 B) uploaded; release notes set;
+  both assets downloadable anonymously (206).
+- **M5 chosen by user: Arduino** (over the default scope option). First cut —
+  ladder → `.ino` export: `src/export/arduino.ts` mirrors `evalLadder` 1:1
+  (OR-branches AND tail, NC negation, TON accumulate/reset-on-drop, pass-2
+  settle without re-accumulation, unknown tags read OFF), default pin map
+  I0.x → D2–D5 (INPUT_PULLUP, LOW=ON), Q0.x → D8–D11; new 🔌 .ino toolbar
+  button beside PNG/PDF. Tests **59/59** (9 new, incl. a brace-before-comment
+  guard — g++ originally caught `//` swallowing the block's closing brace);
+  a generated 4-rung example passes `g++ -Wall -Wextra -fsyntax-only`
+  against an Arduino shim.
