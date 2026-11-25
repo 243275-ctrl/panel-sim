@@ -12,7 +12,7 @@ const render = (type: (typeof DEVICE_TYPES)[number], extra = {}) =>
 
 describe("pictorial art coverage", () => {
   it("renders every device type with real artwork", () => {
-    expect(DEVICE_TYPES.length).toBe(55);
+    expect(DEVICE_TYPES.length).toBe(63);
     for (const t of DEVICE_TYPES) {
       const html = render(t);
       expect(html.length, `type ${t} produced empty art`).toBeGreaterThan(400);

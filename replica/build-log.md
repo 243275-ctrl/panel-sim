@@ -273,3 +273,28 @@ branches), then M3 motors + control.
   symbol — clarity win).
 - Verified: tsc clean, vitest **50/50** (geometry contract holds — tabs still
   ±30), vite build OK, before/after sheets in replica/design/.
+
+## Stone-polisher integration — option ج (2026-11-25)
+- User's own Unity program (github.com/243275-ctrl/stone-polisher-simulator)
+  supplies device drawings; choice ج = recolor theirs (vs أ direct import /
+  ب redraw ourselves). Pipeline committed as
+  `scripts/recolor-stone-icons.py`: crop card (drops baked terminal stubs),
+  flood-fill background → transparent, nearest-color remap to our palette
+  (15 pairs → C tokens + brand accent), header retext for the shared sensor
+  art (STONE / FLOW / THICKNESS in white on the band).
+- **15 icons** in `src/art/icons/` (207×223, 1.3–1.9 KB each) imported with
+  vite `?inline` data URIs so the SVG→PNG exporter embeds them cleanly
+  (verified: base64 free of NaN/undefined for the art.test contract).
+- **Library 55 → 63**: +8 unique types from their program —
+  three-phase-supply (Power), digital/ analog input+output ×4 (Automation),
+  stone / water-flow / thickness sensors (Sensors). All honest `sim:false`
+  (deferred like plc-expansion/transformers) — wiring them yields the
+  "simulation model arrives in a later milestone" fault, not fake physics.
+  Prefixes PS/DI/DO/AI/AO/SC/FS/TS (no collisions).
+- **7 covered types** now wear recolored cards: DC source (POWER 24V),
+  push buttons NO/NC (START/STOP), E-stop, control relay, overload (THERMAL),
+  terminal block (TERMINAL). Shadow-bound five (contactor, breaker-1p,
+  motor, vfd, plc) + lamp/meter stay on our SVG — tests bind them.
+- Sizes follow the real-sizes ladder: cards 30–47 tall, below battery/motor.
+- Verified: tsc clean · vitest **50/50** (63-type contract) · vite build ·
+  art sheet regenerated (`replica/design/art-sheet-after.png`) · parity exit 0.

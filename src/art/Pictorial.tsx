@@ -4,6 +4,22 @@
 // brushed metal, glossy plastic, glass lenses, drop shadows and lamp glow.
 // Light direction is top-left everywhere for a consistent studio look.
 import type { DeviceType } from "../state/store";
+/* stone-polisher-simulator icons (user's own repo), recolored - scripts/recolor-stone-icons.py */
+import iconThreePhase from "./icons/three-phase-supply.png?inline";
+import iconDigitalIn from "./icons/digital-input.png?inline";
+import iconDigitalOut from "./icons/digital-output.png?inline";
+import iconAnalogIn from "./icons/analog-input.png?inline";
+import iconAnalogOut from "./icons/analog-output.png?inline";
+import iconStone from "./icons/stone-sensor.png?inline";
+import iconFlow from "./icons/water-flow-sensor.png?inline";
+import iconThickness from "./icons/thickness-sensor.png?inline";
+import iconRelay from "./icons/relay.png?inline";
+import iconButton from "./icons/button.png?inline";
+import iconButtonNc from "./icons/button-nc.png?inline";
+import iconEstop from "./icons/estop.png?inline";
+import iconSource from "./icons/source.png?inline";
+import iconTerminal from "./icons/terminal-block.png?inline";
+import iconOverload from "./icons/overload.png?inline";
 
 const C = {
   dark: "#3d4852",
@@ -172,29 +188,6 @@ function Box({
   );
 }
 
-/** round actuator head: collar + metal bezel + glossy dome */
-function Head({
-  r = 13,
-  grad = "url(#ps-red)",
-  collar,
-  lit = false,
-}: {
-  r?: number;
-  grad?: string;
-  collar?: string;
-  lit?: boolean;
-}) {
-  return (
-    <g filter="url(#ps-sh-s)">
-      {collar && <circle r={r + 4.5} fill={collar} stroke={C.dark} strokeWidth="1.6" />}
-      <circle r={r + (collar ? 0.5 : 2)} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.6" />
-      <circle r={r - 2} fill={grad} stroke={C.dark} strokeWidth="1.2" filter={lit ? "url(#ps-glow)" : undefined} />
-      <ellipse cx={-r * 0.28} cy={-r * 0.42} rx={r * 0.55} ry={r * 0.34} fill="url(#ps-gloss)" />
-      {lit && <circle r={r - 6} fill={C.white} opacity="0.5" />}
-    </g>
-  );
-}
-
 /** pilot-light lens: metal ring + glass dome */
 function Lens({ grad, lit }: { grad: string; lit?: boolean }) {
   return (
@@ -301,17 +294,7 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-20} y={-24} width={40} height={48} rx={4} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.5" />
-            <rect x={-14} y={-17} width={28} height={14} rx={2} fill="url(#ps-lcd)" stroke={C.black} strokeWidth="1.2" />
-            <path d="M -13 -16 L 13 -16 L 9 -9 L -13 -9 Z" fill={C.white} opacity="0.35" />
-            <text x={0} y={-6.5} fontSize="9" textAnchor="middle" fill={C.darker} fontFamily="monospace" fontWeight="bold">
-              24V
-            </text>
-            <circle cx={-9} cy={12} r={3.2} fill={C.green} stroke={C.black} strokeWidth="1" />
-            <circle cx={1} cy={12} r={3.2} fill="url(#ps-metal)" stroke={C.black} strokeWidth="1" />
-            <line x1={-1.4} y1={12} x2={3.4} y2={12} stroke={C.dark} strokeWidth="1.2" />
-            <text x={11} y={14.5} fontSize="6.5" fill={C.face} fontWeight="bold">DC</text>
-            <Vents x={-18} y={-21} n={3} w={7} />
+            <image href={iconSource} x={-20} y={-21.5} width={40} height={43} />
           </g>
         </g>
       );
@@ -405,19 +388,24 @@ function Body({
         </g>
       );
 
+    case "three-phase-supply":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconThreePhase} x={-22} y={-23.7} width={44} height={47.4} />
+          </g>
+        </g>
+      );
     case "button":
       return (
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-15} y={-6} width={30} height={26} rx={3.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
-            <path d="M -12 -3 L 12 -3" stroke={C.white} strokeWidth="1.4" opacity="0.7" />
+            <image href={iconButton} x={-15} y={-16.15} width={30} height={32.3} />
           </g>
-          <g transform="translate(0,-6)">
-            <Head r={13.5} grad="url(#ps-green)" />
-          </g>
-          <DINSnip />
         </g>
       );
     case "button-nc":
@@ -426,13 +414,8 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-15} y={-6} width={30} height={26} rx={3.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
-            <path d="M -12 -3 L 12 -3" stroke={C.white} strokeWidth="1.4" opacity="0.7" />
+            <image href={iconButtonNc} x={-15} y={-16.15} width={30} height={32.3} />
           </g>
-          <g transform="translate(0,-6)">
-            <Head r={13.5} grad="url(#ps-red)" />
-          </g>
-          <DINSnip />
         </g>
       );
     case "estop":
@@ -441,13 +424,7 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-16} y={-4} width={32} height={24} rx={3.5} fill="url(#ps-amber)" stroke={C.dark} strokeWidth="1.6" />
-            <path d="M -13 -1 L 13 -1" stroke={C.white} strokeWidth="1.5" opacity="0.55" />
-            <rect x={-13} y={8} width={26} height={10} rx={2} fill={C.white} stroke={C.dark} strokeWidth="1.1" />
-            <text x={0} y={15.5} fontSize="7" fontWeight="bold" textAnchor="middle" fill={C.redDark}>STOP</text>
-          </g>
-          <g transform="translate(0,-8)">
-            <Head r={15} grad="url(#ps-red)" collar="url(#ps-amber)" />
+            <image href={iconEstop} x={-17} y={-18.3} width={34} height={36.6} />
           </g>
         </g>
       );
@@ -615,21 +592,7 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-15} y={-18} width={30} height={36} rx={3.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
-            {/* glass cover */}
-            <rect x={-11} y={-14} width={22} height={19} rx={2.5} fill="#dcebf5" opacity="0.75" stroke={C.dark} strokeWidth="1.2" />
-            <path d="M -9 -12 L 5 -12 L 1 -7 L -9 -7 Z" fill={C.white} opacity="0.55" />
-            {/* coil + contacts inside */}
-            <rect x={-7} y={-8} width={7} height={11} rx={1.5} fill="url(#ps-copper)" stroke={C.dark} strokeWidth="0.9" />
-            {[0, 1, 2].map((i) => (
-              <line key={i} x1={-7} y1={-6 + i * 3.5} x2={0} y2={-6 + i * 3.5} stroke={C.darker} strokeWidth="0.8" opacity="0.7" />
-            ))}
-            <line x1={4} y1={-3} x2={9} y2={-9} stroke={C.dark} strokeWidth="1.6" />
-            <circle cx={4} cy={-3} r={1.6} fill={C.darker} />
-            <circle cx={9} cy={-9} r={1.6} fill={C.darker} />
-            <rect x={-11} y={8} width={22} height={7} rx={1.5} fill={C.white} stroke={C.dark} strokeWidth="1" />
-            <text x={0} y={13.5} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold" fontFamily="monospace">24VDC</text>
-            <circle cx={10} cy={-11.5} r={2} fill={lit ? C.green : C.metal2} stroke={C.dark} strokeWidth="0.8" />
+            <image href={iconRelay} x={-17} y={-18.3} width={34} height={36.6} />
           </g>
         </g>
       );
@@ -753,18 +716,8 @@ function Body({
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
-          <Box w={38} h={46} fill="url(#ps-face)" />
-          <g transform="translate(0,-9)">
-            <circle r={10} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.4" />
-            <circle r={10} fill="url(#ps-gloss)" opacity="0.55" />
-            <line x1={0} y1={0} x2={5.5} y2={-5.5} stroke={C.red} strokeWidth="2.2" strokeLinecap="round" />
-            <circle r={2} fill={C.darker} />
-          </g>
-          <Nameplate x={0} y={4.5} w={30} text="FR · 0.4–0.63A" />
-          <g transform="translate(0,15)">
-            <rect x={-11} y={-5} width={22} height={10} rx={5} fill="url(#ps-red)" stroke={C.dark} strokeWidth="1.2" />
-            <ellipse cx={-4} cy={-2.4} rx={4} ry={1.8} fill={C.white} opacity="0.55" />
-            <text x={2} y={1.8} fontSize="5" textAnchor="middle" fill={C.white} fontWeight="bold">RESET</text>
+          <g filter="url(#ps-sh)">
+            <image href={iconOverload} x={-21} y={-22.6} width={42} height={45.2} />
           </g>
         </g>
       );
@@ -1208,6 +1161,36 @@ function Body({
         </g>
       );
 
+    case "stone-sensor":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconStone} x={-17} y={-18.3} width={34} height={36.6} />
+          </g>
+        </g>
+      );
+    case "water-flow-sensor":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconFlow} x={-17} y={-18.3} width={34} height={36.6} />
+          </g>
+        </g>
+      );
+    case "thickness-sensor":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconThickness} x={-17} y={-18.3} width={34} height={36.6} />
+          </g>
+        </g>
+      );
     case "plc":
       return (
         <g>
@@ -1315,22 +1298,53 @@ function Body({
         </g>
       );
 
+    case "digital-input":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconDigitalIn} x={-21} y={-22.6} width={42} height={45.2} />
+          </g>
+        </g>
+      );
+    case "digital-output":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconDigitalOut} x={-21} y={-22.6} width={42} height={45.2} />
+          </g>
+        </g>
+      );
+    case "analog-input":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconAnalogIn} x={-21} y={-22.6} width={42} height={45.2} />
+          </g>
+        </g>
+      );
+    case "analog-output":
+      return (
+        <g>
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <image href={iconAnalogOut} x={-21} y={-22.6} width={42} height={45.2} />
+          </g>
+        </g>
+      );
     case "terminal-block":
       return (
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-27} y={-10} width={54} height={20} rx={2.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
-            <path d="M -24 -7 L 24 -7" stroke={C.white} strokeWidth="1.4" opacity="0.8" />
-            {[-19, -6.5, 6.5, 19].map((x) => (
-              <g key={x}>
-                <rect x={x - 5} y={-7} width={10} height={14} rx={1.5} fill={C.face} stroke={C.dark} strokeWidth="1.1" />
-                <Screw x={x} y={0} r={3.2} />
-                <rect x={x - 3.5} y={6} width={7} height={5} rx={1} fill={C.darker} stroke={C.black} strokeWidth="0.9" />
-              </g>
-            ))}
-            <rect x={-27} y={9} width={54} height={5} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+            <image href={iconTerminal} x={-22} y={-23.7} width={44} height={47.4} />
           </g>
         </g>
       );

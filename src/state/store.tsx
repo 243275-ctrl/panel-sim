@@ -65,7 +65,15 @@ export type DeviceType =
   | "analog-module"
   | "terminal-block"
   | "junction-box"
-  | "connector";
+  | "connector"
+  | "three-phase-supply"
+  | "digital-input"
+  | "digital-output"
+  | "analog-input"
+  | "analog-output"
+  | "stone-sensor"
+  | "water-flow-sensor"
+  | "thickness-sensor";
 
 export interface Device {
   id: string;
@@ -212,6 +220,14 @@ const PREFIX: Record<DeviceType, string> = {
   "terminal-block": "XT",
   "junction-box": "JX",
   connector: "XS",
+  "three-phase-supply": "PS",
+  "digital-input": "DI",
+  "digital-output": "DO",
+  "analog-input": "AI",
+  "analog-output": "AO",
+  "stone-sensor": "SC",
+  "water-flow-sensor": "FS",
+  "thickness-sensor": "TS",
 };
 
 const counts = (s: State, type: DeviceType) =>

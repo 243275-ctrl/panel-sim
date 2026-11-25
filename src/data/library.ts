@@ -82,6 +82,15 @@ export const LIBRARY: LibItem[] = [
   { type: "terminal-block", label: "Terminal block", meta: "feed-through", category: "Connection", prefix: "XT", sim: true, terms: ["1", "2"] },
   { type: "junction-box", label: "Junction box", meta: "4-way connection", category: "Connection", prefix: "JX", sim: true, terms: ["1", "2"] },
   { type: "connector", label: "Plug connector", meta: "industrial plug", category: "Connection", prefix: "XS", sim: true, terms: ["L", "N"] },
+  // ---- stone-polisher integration: their program's unique parts ----
+  { type: "three-phase-supply", label: "Three-phase supply", meta: "400 V line-to-line", category: "Power", prefix: "PS", sim: false, terms: ["L1", "L2"] },
+  { type: "digital-input", label: "Digital input", meta: "24 V discrete in", category: "Automation", prefix: "DI", sim: false, terms: ["L", "N"] },
+  { type: "digital-output", label: "Digital output", meta: "24 V discrete out", category: "Automation", prefix: "DO", sim: false, terms: ["L", "N"] },
+  { type: "analog-input", label: "Analog input", meta: "0–10 V / 4–20 mA in", category: "Automation", prefix: "AI", sim: false, terms: ["+", "−"] },
+  { type: "analog-output", label: "Analog output", meta: "0–10 V / 4–20 mA out", category: "Automation", prefix: "AO", sim: false, terms: ["+", "−"] },
+  { type: "stone-sensor", label: "Stone sensor", meta: "presence detection", category: "Sensors", prefix: "SC", sim: false, terms: ["1", "2"] },
+  { type: "water-flow-sensor", label: "Water flow sensor", meta: "flow monitoring", category: "Sensors", prefix: "FS", sim: false, terms: ["1", "2"] },
+  { type: "thickness-sensor", label: "Thickness sensor", meta: "thickness measurement", category: "Sensors", prefix: "TS", sim: false, terms: ["1", "2"] },
 ];
 
 export const CATEGORIES = [

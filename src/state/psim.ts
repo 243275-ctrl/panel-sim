@@ -78,6 +78,14 @@ export const DEVICE_TYPES: DeviceType[] = [
   "terminal-block",
   "junction-box",
   "connector",
+  "three-phase-supply",
+  "digital-input",
+  "digital-output",
+  "analog-input",
+  "analog-output",
+  "stone-sensor",
+  "water-flow-sensor",
+  "thickness-sensor",
 ];
 
 function isTerm(v: unknown): v is number {
