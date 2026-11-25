@@ -258,3 +258,18 @@ branches), then M3 motors + control.
   no-telemetry stance, honest metrics.
 - **Preflight (all green)**: sweep clean · listing0/0 · parity exit0 ·
   tsc clean · vitest 50/50 · vite build OK.
+
+## Art v3 — realistic relative sizes (2026-11-25)
+- User check: "sizes must be realistic — battery was smaller than the relay".
+  Full55-type audit against real-world size ladder
+  (`replica/design/real-sizes.md`):16 geometry edits.
+- Battery → wide 56×32 block (now widest non-motor); relay shrunk to cube
+  30×36; transformer enlarged 46×46; DC/AC sources raised to PSU height
+  40×48 (taller than contactor, as real DIN PSUs are); breaker-1p slimmed to
+  20 w (18 mm pole); SPD slimmed 21 w; protection heights normalised to 46
+  (overload/rccb/mccb/breaker-3p); overload RESET label moved inside the
+  button; prox/photo barrel lengthened (M12×60); generator enlarged; panel
+  meter faces grown to Ø44; **ground got a faceplate chassis** (was a bare
+  symbol — clarity win).
+- Verified: tsc clean, vitest **50/50** (geometry contract holds — tabs still
+  ±30), vite build OK, before/after sheets in replica/design/.

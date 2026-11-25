@@ -301,17 +301,17 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-19} y={-17} width={38} height={34} rx={4} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.5" />
-            <rect x={-13} y={-11} width={26} height={13} rx={2} fill="url(#ps-lcd)" stroke={C.black} strokeWidth="1.2" />
-            <path d="M -12 -10 L 12 -10 L 8 -4 L -12 -4 Z" fill={C.white} opacity="0.35" />
-            <text x={0} y={-1.5} fontSize="8.5" textAnchor="middle" fill={C.darker} fontFamily="monospace" fontWeight="bold">
+            <rect x={-20} y={-24} width={40} height={48} rx={4} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.5" />
+            <rect x={-14} y={-17} width={28} height={14} rx={2} fill="url(#ps-lcd)" stroke={C.black} strokeWidth="1.2" />
+            <path d="M -13 -16 L 13 -16 L 9 -9 L -13 -9 Z" fill={C.white} opacity="0.35" />
+            <text x={0} y={-6.5} fontSize="9" textAnchor="middle" fill={C.darker} fontFamily="monospace" fontWeight="bold">
               24V
             </text>
-            <circle cx={-9} cy={11} r={3.2} fill={C.green} stroke={C.black} strokeWidth="1" />
-            <circle cx={1} cy={11} r={3.2} fill="url(#ps-metal)" stroke={C.black} strokeWidth="1" />
-            <line x1={-1.4} y1={11} x2={3.4} y2={11} stroke={C.dark} strokeWidth="1.2" />
-            <text x={11} y={13.5} fontSize="6.5" fill={C.face} fontWeight="bold">DC</text>
-            <Vents x={-17} y={-14} n={2} w={6} />
+            <circle cx={-9} cy={12} r={3.2} fill={C.green} stroke={C.black} strokeWidth="1" />
+            <circle cx={1} cy={12} r={3.2} fill="url(#ps-metal)" stroke={C.black} strokeWidth="1" />
+            <line x1={-1.4} y1={12} x2={3.4} y2={12} stroke={C.dark} strokeWidth="1.2" />
+            <text x={11} y={14.5} fontSize="6.5" fill={C.face} fontWeight="bold">DC</text>
+            <Vents x={-18} y={-21} n={3} w={7} />
           </g>
         </g>
       );
@@ -321,27 +321,32 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-19} y={-17} width={38} height={34} rx={4} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.5" />
-            <circle r={10} fill={C.white} stroke={C.dark} strokeWidth="1.3" />
-            <path d="M -6 0 Q -3 -7 0 0 Q 3 7 6 0" stroke={C.red} strokeWidth="2" fill="none" strokeLinecap="round" />
-            <path d="M -9 -9 A 12 12 0 0 1 2 -11" stroke={C.white} strokeWidth="1.6" fill="none" opacity="0.8" />
-            <text x={0} y={14.5} fontSize="8" textAnchor="middle" fill={C.dark} fontWeight="bold">~</text>
-            <Screw x={-13} y={12} r={2.6} />
-            <Screw x={13} y={12} r={2.6} />
+            <rect x={-20} y={-24} width={40} height={48} rx={4} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.5" />
+            <circle cy={-5} r={11} fill={C.white} stroke={C.dark} strokeWidth="1.3" />
+            <path d="M -6.5 -5 Q -3 -12.5 0 -5 Q 3 3.5 6.5 -5" stroke={C.red} strokeWidth="2" fill="none" strokeLinecap="round" />
+            <path d="M -10 -14 A 13 13 0 0 1 2 -16" stroke={C.white} strokeWidth="1.6" fill="none" opacity="0.8" />
+            <text x={0} y={14} fontSize="9" textAnchor="middle" fill={C.dark} fontWeight="bold">~</text>
+            <Screw x={-13} y={18} r={2.8} />
+            <Screw x={13} y={18} r={2.8} />
           </g>
         </g>
       );
     case "ground":
       return (
         <g>
-          <line x1={-30} y1={0} x2={-13} y2={-4} stroke="url(#ps-metal-h)" strokeWidth="3.2" strokeLinecap="round" />
-          <line x1={30} y1={0} x2={13} y2={-4} stroke="url(#ps-metal-h)" strokeWidth="3.2" strokeLinecap="round" />
-          <line x1={0} y1={-26} x2={0} y2={-5} stroke="url(#ps-metal-h)" strokeWidth="3.4" />
-          <circle cx={0} cy={-26} r={4} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.3" />
-          <line x1={-16} y1={-5} x2={16} y2={-5} stroke={C.dark} strokeWidth="4" strokeLinecap="round" />
-          <line x1={-10} y1={4} x2={10} y2={4} stroke={C.dark} strokeWidth="4" strokeLinecap="round" />
-          <line x1={-4} y1={13} x2={4} y2={13} stroke={C.dark} strokeWidth="4" strokeLinecap="round" />
-          <path d="M -16 -7.5 L 16 -7.5" stroke={C.white} strokeWidth="1" opacity="0.35" />
+          <Tab dir={-1} />
+          <Tab dir={1} />
+          <g filter="url(#ps-sh)">
+            <Box w={34} h={30} />
+            <line x1={0} y1={-10} x2={0} y2={-3} stroke={C.dark} strokeWidth="2.4" strokeLinecap="round" />
+            <line x1={-11} y1={-3} x2={11} y2={-3} stroke={C.dark} strokeWidth="3.2" strokeLinecap="round" />
+            <line x1={-7} y1={3} x2={7} y2={3} stroke={C.dark} strokeWidth="3.2" strokeLinecap="round" />
+            <line x1={-3} y1={9} x2={3} y2={9} stroke={C.dark} strokeWidth="3.2" strokeLinecap="round" />
+            <circle cx={0} cy={-10} r={2.6} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.1" />
+            <path d="M -11 -4.5 L 11 -4.5" stroke={C.white} strokeWidth="1" opacity="0.35" />
+          </g>
+          <line x1={-30} y1={0} x2={-17} y2={0} stroke="url(#ps-metal-h)" strokeWidth="3.2" strokeLinecap="round" />
+          <line x1={17} y1={0} x2={30} y2={0} stroke="url(#ps-metal-h)" strokeWidth="3.2" strokeLinecap="round" />
         </g>
       );
     case "transformer-1p":
@@ -352,9 +357,9 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-21} y={-21} width={17} height={42} rx={2.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
-            <rect x={4} y={-21} width={17} height={42} rx={2.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
-            <rect x={-21} y={-7} width={42} height={14} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.4" />
+            <rect x={-23} y={-23} width={19} height={46} rx={2.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
+            <rect x={4} y={-23} width={19} height={46} rx={2.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
+            <rect x={-23} y={-7.5} width={46} height={15} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.4" />
             {[-15, -9, 9, 15].map((x) => (
               <path key={x} d={`M ${x} -19 q 5.5 4.5 0 9 q -5.5 4.5 0 9`} stroke="url(#ps-copper)" strokeWidth="2.4" fill="none" />
             ))}
@@ -372,14 +377,14 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-21} y={-15} width={42} height={30} rx={3.5} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.5" />
-            <rect x={-15} y={-19} width={9} height={5.5} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1" />
-            <rect x={6} y={-19} width={9} height={5.5} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1" />
-            <rect x={-16} y={-9} width={32} height={7} rx={1.5} fill="#1c3d2a" stroke={C.black} strokeWidth="1" />
-            <rect x={-15} y={-8} width={14} height={5} rx={1} fill={C.green} opacity="0.85" />
-            <text x={-9} y={9} fontSize="11" fontWeight="bold" fill={C.green} textAnchor="middle">+</text>
-            <text x={9} y={10.5} fontSize="13" fill={C.face} textAnchor="middle">−</text>
-            <path d="M -20 -12 L 20 -12" stroke={C.white} strokeWidth="1.2" opacity="0.28" />
+            <rect x={-28} y={-16} width={56} height={32} rx={3.5} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.5" />
+            <rect x={-19} y={-20.5} width={10} height={6} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1" />
+            <rect x={9} y={-20.5} width={10} height={6} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1" />
+            <rect x={-21} y={-10} width={42} height={8} rx={1.5} fill="#1c3d2a" stroke={C.black} strokeWidth="1" />
+            <rect x={-20} y={-9} width={18} height={6} rx={1} fill={C.green} opacity="0.85" />
+            <text x={-12} y={10} fontSize="12" fontWeight="bold" fill={C.green} textAnchor="middle">+</text>
+            <text x={12} y={11.5} fontSize="14" fill={C.face} textAnchor="middle">−</text>
+            <path d="M -27 -13 L 27 -13" stroke={C.white} strokeWidth="1.2" opacity="0.28" />
           </g>
         </g>
       );
@@ -389,13 +394,13 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-25} y={-15} width={35} height={28} rx={3} fill="url(#ps-blue)" stroke={C.darker} strokeWidth="1.5" />
-            <circle cx={15} cy={0} r={11.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.5" />
-            <circle cx={15} cy={0} r={6} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
-            <path d="M 15 -9 L 15 9 M 7 -5 L 23 5 M 7 5 L 23 -5" stroke={C.dark} strokeWidth="1.4" />
-            <rect x={-21} y={-11} width={14} height={8} rx={1.5} fill={C.face} stroke={C.dark} strokeWidth="1" />
-            <text x={-14} y={-4.5} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold">GEN</text>
-            <Vents x={-22} y={0} n={3} w={9} />
+            <rect x={-27} y={-17} width={38} height={34} rx={3} fill="url(#ps-blue)" stroke={C.darker} strokeWidth="1.5" />
+            <circle cx={14} cy={0} r={13} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.5" />
+            <circle cx={14} cy={0} r={6.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+            <path d="M 14 -10 L 14 10 M 5.5 -5.5 L 22.5 5.5 M 5.5 5.5 L 22.5 -5.5" stroke={C.dark} strokeWidth="1.4" />
+            <rect x={-23} y={-13} width={15} height={8} rx={1.5} fill={C.face} stroke={C.dark} strokeWidth="1" />
+            <text x={-15.5} y={-6.5} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold">GEN</text>
+            <Vents x={-24} y={0} n={4} w={9} />
           </g>
         </g>
       );
@@ -610,21 +615,21 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-17} y={-21} width={34} height={42} rx={3.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
+            <rect x={-15} y={-18} width={30} height={36} rx={3.5} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.6" />
             {/* glass cover */}
-            <rect x={-12} y={-16} width={24} height={22} rx={2.5} fill="#dcebf5" opacity="0.75" stroke={C.dark} strokeWidth="1.2" />
-            <path d="M -10 -14 L 6 -14 L 2 -8 L -10 -8 Z" fill={C.white} opacity="0.55" />
+            <rect x={-11} y={-14} width={22} height={19} rx={2.5} fill="#dcebf5" opacity="0.75" stroke={C.dark} strokeWidth="1.2" />
+            <path d="M -9 -12 L 5 -12 L 1 -7 L -9 -7 Z" fill={C.white} opacity="0.55" />
             {/* coil + contacts inside */}
-            <rect x={-8} y={-9} width={8} height={13} rx={1.5} fill="url(#ps-copper)" stroke={C.dark} strokeWidth="0.9" />
+            <rect x={-7} y={-8} width={7} height={11} rx={1.5} fill="url(#ps-copper)" stroke={C.dark} strokeWidth="0.9" />
             {[0, 1, 2].map((i) => (
-              <line key={i} x1={-8} y1={-7 + i * 4} x2={0} y2={-7 + i * 4} stroke={C.darker} strokeWidth="0.8" opacity="0.7" />
+              <line key={i} x1={-7} y1={-6 + i * 3.5} x2={0} y2={-6 + i * 3.5} stroke={C.darker} strokeWidth="0.8" opacity="0.7" />
             ))}
-            <line x1={4} y1={-4} x2={10} y2={-10} stroke={C.dark} strokeWidth="1.6" />
-            <circle cx={4} cy={-4} r={1.6} fill={C.darker} />
-            <circle cx={10} cy={-10} r={1.6} fill={C.darker} />
-            <rect x={-12} y={9} width={24} height={7} rx={1.5} fill={C.white} stroke={C.dark} strokeWidth="1" />
-            <text x={0} y={14.5} fontSize="6" textAnchor="middle" fill={C.dark} fontWeight="bold" fontFamily="monospace">24VDC</text>
-            <circle cx={11} cy={-13} r={2} fill={lit ? C.green : C.metal2} stroke={C.dark} strokeWidth="0.8" />
+            <line x1={4} y1={-3} x2={9} y2={-9} stroke={C.dark} strokeWidth="1.6" />
+            <circle cx={4} cy={-3} r={1.6} fill={C.darker} />
+            <circle cx={9} cy={-9} r={1.6} fill={C.darker} />
+            <rect x={-11} y={8} width={22} height={7} rx={1.5} fill={C.white} stroke={C.dark} strokeWidth="1" />
+            <text x={0} y={13.5} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold" fontFamily="monospace">24VDC</text>
+            <circle cx={10} cy={-11.5} r={2} fill={lit ? C.green : C.metal2} stroke={C.dark} strokeWidth="0.8" />
           </g>
         </g>
       );
@@ -689,15 +694,15 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-12} y={-23} width={24} height={46} rx={2.5} fill="url(#ps-face)" stroke={C.dark} strokeWidth="1.6" />
-            <rect x={-12} y={-23} width={24} height={4} rx={2} fill={C.white} opacity="0.8" />
+            <rect x={-10} y={-23} width={20} height={46} rx={2.5} fill="url(#ps-face)" stroke={C.dark} strokeWidth="1.6" />
+            <rect x={-10} y={-23} width={20} height={4} rx={2} fill={C.white} opacity="0.8" />
             {/* recessed toggle */}
-            <rect x={-7} y={-17} width={14} height={16} rx={2.5} fill={C.darker} stroke={C.black} strokeWidth="1.2" />
-            <rect x={-5} y={-14} width={10} height={9} rx={2} fill="url(#ps-red)" stroke={C.black} strokeWidth="1" />
-            <path d="M -4 -13 L 4 -13" stroke={C.white} strokeWidth="1.2" opacity="0.6" />
-            <Screw x={0} y={6} r={3.8} />
-            <Nameplate x={0} y={17} w={16} text="C16" />
-            <rect x={-12} y={-27} width={24} height={5} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
+            <rect x={-6} y={-17} width={12} height={16} rx={2.5} fill={C.darker} stroke={C.black} strokeWidth="1.2" />
+            <rect x={-4} y={-14} width={8} height={9} rx={2} fill="url(#ps-red)" stroke={C.black} strokeWidth="1" />
+            <path d="M -3 -13 L 3 -13" stroke={C.white} strokeWidth="1.2" opacity="0.6" />
+            <Screw x={0} y={6} r={3.6} />
+            <Nameplate x={0} y={17} w={15} text="C16" />
+            <rect x={-10} y={-27} width={20} height={5} rx={1.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.2" />
           </g>
           <DINSnip />
         </g>
@@ -708,8 +713,8 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-            <rect x={-25} y={-21} width={50} height={42} rx={3} fill="url(#ps-face)" stroke={C.dark} strokeWidth="1.7" />
-            <path d="M -22 -18 L 22 -18" stroke={C.white} strokeWidth="1.5" opacity="0.8" />
+            <rect x={-25} y={-23} width={50} height={46} rx={3} fill="url(#ps-face)" stroke={C.dark} strokeWidth="1.7" />
+            <path d="M -22 -20 L 22 -20" stroke={C.white} strokeWidth="1.5" opacity="0.8" />
             {[-16, 0, 16].map((x) => (
               <g key={x}>
                 <rect x={x - 6.5} y={-15} width={13} height={14} rx={2.5} fill={C.darker} stroke={C.black} strokeWidth="1.1" />
@@ -728,7 +733,7 @@ function Body({
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
-          <Box w={46} h={48} fill="url(#ps-face)" />
+          <Box w={46} h={46} fill="url(#ps-face)" />
           <rect x={-11} y={-19} width={22} height={17} rx={2.5} fill={C.darker} stroke={C.black} strokeWidth="1.2" />
           <rect x={-8} y={-16} width={16} height={10} rx={2} fill="url(#ps-red)" stroke={C.black} strokeWidth="1" />
           <path d="M -6 -14.5 L 6 -14.5" stroke={C.white} strokeWidth="1.2" opacity="0.6" />
@@ -748,7 +753,7 @@ function Body({
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
-          <Box w={38} h={44} fill="url(#ps-face)" />
+          <Box w={38} h={46} fill="url(#ps-face)" />
           <g transform="translate(0,-9)">
             <circle r={10} fill="url(#ps-body)" stroke={C.dark} strokeWidth="1.4" />
             <circle r={10} fill="url(#ps-gloss)" opacity="0.55" />
@@ -756,10 +761,10 @@ function Body({
             <circle r={2} fill={C.darker} />
           </g>
           <Nameplate x={0} y={4.5} w={30} text="FR · 0.4–0.63A" />
-          <g transform="translate(0,14)">
-            <rect x={-9} y={-4.5} width={18} height={9} rx={4.5} fill="url(#ps-red)" stroke={C.dark} strokeWidth="1.2" />
-            <ellipse cx={-3} cy={-2} rx={3.5} ry={1.6} fill={C.white} opacity="0.55" />
-            <text x={0} y={12} fontSize="5.5" textAnchor="middle" fill={C.dark} fontWeight="bold">RESET</text>
+          <g transform="translate(0,15)">
+            <rect x={-11} y={-5} width={22} height={10} rx={5} fill="url(#ps-red)" stroke={C.dark} strokeWidth="1.2" />
+            <ellipse cx={-4} cy={-2.4} rx={4} ry={1.8} fill={C.white} opacity="0.55" />
+            <text x={2} y={1.8} fontSize="5" textAnchor="middle" fill={C.white} fontWeight="bold">RESET</text>
           </g>
         </g>
       );
@@ -768,11 +773,11 @@ function Body({
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
-          <Box w={26} h={42} fill="url(#ps-face)" />
-          <rect x={-8} y={-15} width={16} height={20} rx={2.5} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.2" />
-          <path d="M 1.5 -11 l -5.5 8 h 5.5 l -5.5 8" stroke={C.amber} strokeWidth="2" fill="none" strokeLinejoin="round" />
-          <circle cx={0} cy={-18.5} r={2.4} fill={C.green} stroke={C.dark} strokeWidth="0.9" />
-          <Nameplate x={0} y={14} w={20} text="SPD" />
+          <Box w={21} h={46} fill="url(#ps-face)" />
+          <rect x={-6.5} y={-16} width={13} height={20} rx={2.5} fill="url(#ps-dark)" stroke={C.black} strokeWidth="1.2" />
+          <path d="M 1 -12 l -4.5 7 h 4.5 l -4.5 7" stroke={C.amber} strokeWidth="2" fill="none" strokeLinejoin="round" />
+          <circle cx={0} cy={-19.5} r={2.2} fill={C.green} stroke={C.dark} strokeWidth="0.9" />
+          <Nameplate x={0} y={15} w={17} text="SPD" />
           <DINSnip />
         </g>
       );
@@ -781,7 +786,7 @@ function Body({
         <g>
           <Tab dir={-1} />
           <Tab dir={1} />
-          <Box w={46} h={44} fill="url(#ps-face)" />
+          <Box w={46} h={46} fill="url(#ps-face)" />
           <rect x={-17} y={-15} width={19} height={17} rx={2.5} fill={C.darker} stroke={C.black} strokeWidth="1.2" />
           <rect x={-14} y={-12} width={13} height={10} rx={1.5} fill="url(#ps-green)" stroke={C.black} strokeWidth="0.9" />
           <path d="M -13 -10.5 L -2 -10.5" stroke={C.white} strokeWidth="1.1" opacity="0.6" />
@@ -1078,19 +1083,19 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh)">
-          <circle r={19.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="2" />
-          <circle r={16} fill="#f7f9fa" stroke={C.darker} strokeWidth="1.2" />
-          <circle r={16} fill="url(#ps-gloss)" opacity="0.45" />
+          <circle r={22} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="2" />
+          <circle r={18.5} fill="#f7f9fa" stroke={C.darker} strokeWidth="1.2" />
+          <circle r={18.5} fill="url(#ps-gloss)" opacity="0.45" />
           {Array.from({ length: 9 }, (_, i) => {
             const ang = (-140 + i * 35) * (Math.PI / 180);
             const major = i % 4 === 0;
             return (
               <line
                 key={i}
-                x1={Math.cos(ang) * (major ? 10.5 : 12)}
-                y1={Math.sin(ang) * (major ? 10.5 : 12)}
-                x2={Math.cos(ang) * 14}
-                y2={Math.sin(ang) * 14}
+                x1={Math.cos(ang) * (major ? 12 : 13.7)}
+                y1={Math.sin(ang) * (major ? 12 : 13.7)}
+                x2={Math.cos(ang) * 16}
+                y2={Math.sin(ang) * 16}
                 stroke={C.dark}
                 strokeWidth={major ? 1.8 : 1.1}
               />
@@ -1099,19 +1104,19 @@ function Body({
           <line
             x1={Math.cos(a) * 3.5}
             y1={Math.sin(a) * 3.5}
-            x2={Math.cos(a) * 14.5}
-            y2={Math.sin(a) * 14.5}
+            x2={Math.cos(a) * 16.5}
+            y2={Math.sin(a) * 16.5}
             stroke={C.red}
             strokeWidth="1.9"
             strokeLinecap="round"
           />
-          <circle r={2.6} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.1" />
+          <circle r={2.8} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.1" />
           <circle r={1} fill={C.darker} />
-          <text x={0} y={11.5} fontSize="7" fontWeight="bold" textAnchor="middle" fill={C.dark}>
+          <text x={0} y={13} fontSize="7.5" fontWeight="bold" textAnchor="middle" fill={C.dark}>
             {readout ? readout.text : isV ? "V" : "A"}
           </text>
           {/* glass reflection streak */}
-          <path d="M -12 -9 A 15 15 0 0 1 4 -14 L -2 -8 A 9 9 0 0 0 -10 -5 Z" fill={C.white} opacity="0.55" />
+          <path d="M -14 -10.5 A 17 17 0 0 1 5 -16 L -2 -9.5 A 10 10 0 0 0 -12 -6 Z" fill={C.white} opacity="0.55" />
           </g>
         </g>
       );
@@ -1162,9 +1167,9 @@ function Body({
           <Tab dir={-1} />
           <Tab dir={1} />
           <g filter="url(#ps-sh-s)">
-            <rect x={-23} y={-7.5} width={35} height={15} rx={7.5} fill={photo ? "url(#ps-body)" : "url(#ps-dark)"} stroke={C.dark} strokeWidth="1.5" />
-            {[0, 1, 2, 3].map((i) => (
-              <line key={i} x1={-19 + i * 5} y1={-6} x2={-19 + i * 5} y2={6} stroke={photo ? C.dark : C.black} strokeWidth="1" opacity="0.45" />
+            <rect x={-27} y={-7.5} width={39} height={15} rx={7.5} fill={photo ? "url(#ps-body)" : "url(#ps-dark)"} stroke={C.dark} strokeWidth="1.5" />
+            {[0, 1, 2, 3, 4].map((i) => (
+              <line key={i} x1={-23 + i * 5} y1={-6} x2={-23 + i * 5} y2={6} stroke={photo ? C.dark : C.black} strokeWidth="1" opacity="0.45" />
             ))}
             <rect x={12} y={-9.5} width={11} height={19} rx={2.5} fill="url(#ps-metal)" stroke={C.dark} strokeWidth="1.4" />
             <path d="M 14 -7 L 14 7" stroke={C.white} strokeWidth="1.2" opacity="0.7" />
